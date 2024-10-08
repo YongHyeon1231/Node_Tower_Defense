@@ -1,6 +1,31 @@
 # Node_Tower_Defense
 스파르타 코딩클럽 6기 9조 Tower_Defense websocket project
 
+## 패키지 매니저
+
+yarn을 사용하고 있습니다.
+
+## Installation
+
+### Clone repository
+```bash
+git clone https://github.com/YongHyeon1231/Node_Tower_Defense
+```
+### Install Dependencies
+```bash
+yarn add
+```
+
+### Run Release
+```bash
+yarn run start
+```
+
+### Run Development
+```bash
+yarn run dev
+```
+
 
 ## 프로젝트 구조 - WebSocket과 REST API 결합 서버
 
