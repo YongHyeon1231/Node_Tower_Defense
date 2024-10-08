@@ -1,6 +1,6 @@
 import Utils from '../../libs/utils.js';
-import { tokenVerify } from '../middleware/token-middleware.js';
-import { authenticateToken } from '../middleware/auth-middleware.js';
+import { tokenVerify } from '../middleware/token.middleware.js';
+import { authenticateToken } from '../middleware/auth.middleware.js';
 
 const allRoutes = [
   //...gameRoutes,
