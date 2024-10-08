@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DB_URL")
+  shadowDatabaseUrl = env("SHADOW_DB_URL")
+}
+
+model Player {
+  id        Int              @id @default(autoincrement())
+  email     String           @db.VarChar(255)
+  password  String           @db.VarChar(255)
+  name      String           @db.VarChar(255)
+  highScore Int
+  PlayerMonsterStatuses PlayerMonsterStatus[]
+  PlayerTowers         PlayerTower[]
+  PlayerProgresses     PlayerProgress[]
+}
+
+model PlayerMonsterStatus {
+  id              Int     @id @default(autoincrement())
+  playerId        Int
+  monsterId       Int
+  monsterUUID     Int
+  monsterPosition Int
+  monsterCurrentHp Int
+  Player          Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  Monster         Monster @relation(fields: [monsterId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@index([monsterId])
+}
+
+model PlayerTower {
+  id             Int      @id @default(autoincrement())
+  playerId       Int
+  towerId        Int
+  towerUUID      Int
+  towerPosition  Int
+  lastAttackTime DateTime
+  Player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  Tower          Tower    @relation(fields: [towerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@index([towerId])
+}
+
+model PlayerProgress {
+  id             Int      @id @default(autoincrement())
+  playerId       Int
+  currentStageId Int
+  gold           Int
+  score          Int
+  currentHQId    Int
+  currentHQHp    Int
+  lastUpdate     DateTime
+  Player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  Stage          Stage    @relation(fields: [currentStageId], references: [id], onDelete: Cascade)
+  SpartaHeadQuater SpartaHeadQuater @relation(fields: [currentHQId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@index([currentStageId])
+}
+
+model Monster {
+  id      Int    @id @default(autoincrement())
+  damage  Int
+  hp      Int
+  weight  Int
+  PlayerMonsterStatuses PlayerMonsterStatus[]
+}
+
+model Tower {
+  id             Int     @id @default(autoincrement())
+  attackCooltime BigInt
+  damage         Int
+  damageRange    Int
+  PlayerTowers   PlayerTower[]
+}
+
+model Stage {
+  id              Int               @id @default(autoincrement())
+  monsterCount    Int
+  monsterTypeRange Int
+  PlayerProgresses PlayerProgress[]
+}
+
+model SpartaHeadQuater {
+  id    Int  @id @default(autoincrement())
+  maxHp Int
+  PlayerProgresses PlayerProgress[]
+}
