@@ -19,7 +19,7 @@ const requiredEnv = {
     'ALGORITHM',
   ],
   SERVER: ['PORT'],
-  REDIS: ['HOST', 'PORT'],
+  REDIS: ['HOST', 'PORT', 'PASSWORD'],
 };
 
 /**

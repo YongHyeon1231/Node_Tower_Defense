@@ -1,8 +1,7 @@
 import Redis from 'ioredis';
 import env from '../libs/env.js';
-const { REDIS_HOST, REDIS_PORT } = env;
+const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = env;
 
-console.log(env);
 class RedisServiceManager {
   constructor() {
     this.client = null;
@@ -16,6 +15,7 @@ class RedisServiceManager {
         this.client = new Redis({
           host: REDIS_HOST,
           port: REDIS_PORT,
+          password: REDIS_PASSWORD,
           autoResubscribe: true,
           retryStrategy: (times) => {
             const delay = Math.min(times * 100, 3000); // 재시도 지연 시간 설정
@@ -203,5 +203,4 @@ class RedisServiceManager {
 }
 
 const redisServiceManager = new RedisServiceManager();
-redisServiceManager.connect();
 export default redisServiceManager;
