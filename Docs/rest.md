@@ -1,5 +1,24 @@
 # REST API 작성 요령
+<!-- TOC -->
+- [REST API 작성 요령](#rest-api-작성-요령)
+  - [Layer](#layer)
+  - [Middleware](#middleware)
+  - [Routes](#routes)
+    - [작업 요령](#작업-요령)
+      - [1. rest/routes/{domain}.route.js 에 관련 api를 명세합니다.](#1-restroutesdomainroutejs-에-관련-api를-명세합니다)
+      - [2. rest/routes/routes.js에 allRoutes에 스프레드하여 등록합니다.](#2-restroutesroutesjs에-allroutes에-스프레드하여-등록합니다)
+      - [3. routes.js에서 명세된 모든 api에 대해 미들웨어 및 필요 파라미터를 자동으로 등록합니다.](#3-routesjs에서-명세된-모든-api에-대해-미들웨어-및-필요-파라미터를-자동으로-등록합니다)
+  - [Services](#services)
+    - [작업 요령](#작업-요령-1)
+      - [1. {domain}.service.js 로 파일을 작성합니다.](#1-domainservicejs-로-파일을-작성합니다)
+      - [2. 파라미터는 객체로 전달 받습니다.](#2-파라미터는-객체로-전달-받습니다)
+      - [3. 리턴 할 때도 객체로 전달합니다.](#3-리턴-할-때도-객체로-전달합니다)
+  - [Repositories](#repositories)
+    - [작업 요령](#작업-요령-2)
+      - [1. {domain}.repository.js 로 파일을 작성합니다.](#1-domainrepositoryjs-로-파일을-작성합니다)
+      - [2. db와 상호작용하는 코드를 작성하고 결과를 반환합니다.](#2-db와-상호작용하는-코드를-작성하고-결과를-반환합니다)
 
+<!-- /TOC -->
 ## Layer
 
 - Routes : api를 명세하고 어떤 서비스와 연결되었는지 명세합니다.
