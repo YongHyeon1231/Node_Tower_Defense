@@ -53,7 +53,7 @@ export const handlerEvent = async (io, socket, data) => {
 
   io.emit(broadcast.event, broadcast.data);
   socket.emit(event, response);
-
+  //핸들링 결과 로그 출력
   logger.info(`handler. br[${broadcast}] ${event} - ${JSON.stringify(response)}`);
 };
 
