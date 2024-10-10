@@ -18,7 +18,6 @@
 
 <!-- /TOC -->
 
-
 ## 1. Redis, Prisma 직접 사용 vs DatabaseServiceManager
 
 ### Redis 직접 사용
@@ -66,7 +65,7 @@ DatabaseServiceManager는 Redis와 Prisma를 결합하여 캐싱과 데이터베
 
 ```javascript
 // 사용자의 데이터를 조회하고 캐싱
-const users = await dbServiceManager.findMany('User', {
+const users = await db.findMany('User', {
   where: { isActive: true },
   select: { id: true, name: true, email: true }
 }, 3600);  // 3600초 동안 캐시
@@ -79,11 +78,11 @@ console.log(users);
 
 ```javascript
 // 사용자 데이터를 생성하고 관련 캐시를 무효화
-await dbServiceManager.createData('User', {
+await db.createData('User', {
   email: 'newuser@example.com',
   password: 'hashedpassword',
   name: 'New User'
-}, ['user_list_cache_key']);
+});
 ```
 
 ### 트랜잭션 처리 및 캐시 무효화 예시
@@ -96,7 +95,7 @@ const queries = [
   prisma.user.update({ where: { id: 1 }, data: { name: 'Updated Name' } }),
   prisma.post.create({ data: { title: 'Post Title', userId: 1 } })
 ];
-await dbServiceManager.executeTransaction(queries, ['user_1_cache_key', 'post_list_cache_key']);
+await db.executeTransaction(queries);
 ```
 
 ### 캐시 TTL 갱신 예시
@@ -105,7 +104,7 @@ await dbServiceManager.executeTransaction(queries, ['user_1_cache_key', 'post_li
 
 ```javascript
 // 캐시의 TTL 갱신
-await dbServiceManager.refreshTTL('user_list_cache_key', 7200);  // TTL 7200초로 연장
+await db.refreshTTL('user_list_cache_key', 7200);  // TTL 7200초로 연장
 ```
 
 ## 3. 언제 DatabaseServiceManager를 사용해야 하는가?

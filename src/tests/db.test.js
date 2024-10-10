@@ -5,7 +5,7 @@ const prisma = db.prisma;
 await db.redis.connect();
 
 // 데이터 넣는 예제
-const email = 'test3@test.com';
+const email = 'test6@test.com';
 const playerData = {
   email,
   password: 'dkdkdkdkdladpdp1!',

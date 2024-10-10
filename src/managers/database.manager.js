@@ -9,151 +9,131 @@ class DatabaseServiceManager {
   }
 
   /**
-   * 공통 캐싱 및 데이터 조회 처리
+   * 캐시 그룹 생성 (id 또는 조건 기반 자동 생성)
    * @param {string} model - Prisma 모델 이름
-   * @param {string} operation - 수행할 작업 (findMany, findUnique, findFirst)
-   * @param {Object} queryArgs - 쿼리 매개변수
-   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
-   * @returns {Promise<Object>} - 조회된 데이터
+   * @param {Object} params - 쿼리 매개변수 (id 또는 조건)
+   * @returns {string} - 자동 생성된 캐시 그룹
    */
-  async cacheAndFetch(model, operation, queryArgs, ttl = 3600) {
-    const cacheKey = this.generateCacheKey(model, operation, queryArgs);
-
-    let cachedData = await this.redis.get(cacheKey);
-    if (cachedData) {
-      logger.info(`캐시 데이터 조회: ${cacheKey}`);
-      return JSON.parse(cachedData);
+  generateCacheGroup(model, params) {
+    if (params.id) {
+      return `${model}_group_${params.id}`; // ID 기반 캐시 그룹
     }
+    return `${model}_group_${JSON.stringify(params)}`; // 조건 기반 캐시 그룹
+  }
 
-    const dbData = await this.prisma[model][operation](queryArgs);
-    if (dbData) {
-      await this.redis.set(cacheKey, JSON.stringify(dbData), ttl);
+  /**
+   * 캐시 저장 및 자동 그룹화
+   * @param {string} cacheKey - 저장할 캐시 키
+   * @param {Object} data - 저장할 데이터
+   * @param {string} group - 자동 생성된 캐시 그룹
+   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
+   */
+  async setCache(cacheKey, group, data, ttl = 3600) {
+    await this.redis.set(cacheKey, JSON.stringify(data), ttl);
+    await this.redis.sAdd(group, cacheKey);
+  }
+
+  /**
+   * 그룹화된 캐시 무효화 (자동 그룹화 기반)
+   * @param {string} model - Prisma 모델 이름
+   * @param {Object} params - 쿼리 매개변수 (id 또는 조건 기반)
+   */
+  async invalidateGroupCache(model, params) {
+    const group = this.generateCacheGroup(model, params);
+    const cacheKeys = await this.redis.sMembers(group);
+    if (cacheKeys.length) {
+      await Promise.all(cacheKeys.map((key) => this.redis.invalidate(key)));
+      await this.redis.del(group);
     }
-
-    return dbData;
   }
 
   /**
-   * 다수의 데이터를 조회하고 캐싱
+   * CRUD 작업 - 자동 그룹 관리 기반 캐시 무효화
    * @param {string} model - Prisma 모델 이름
-   * @param {Object} queryArgs - 쿼리 매개변수
-   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
-   * @returns {Promise<Array>} - 조회된 데이터 배열
+   * @param {Object} data - 생성 또는 업데이트할 데이터
    */
-  async findMany(model, queryArgs, ttl = 3600) {
-    return this.cacheAndFetch(model, 'findMany', queryArgs, ttl);
-  }
-
-  /**
-   * 단일 데이터를 조회하고 캐싱
-   * @param {string} model - Prisma 모델 이름
-   * @param {Object} queryArgs - 쿼리 매개변수
-   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
-   * @returns {Promise<Object|null>} - 조회된 데이터 객체 또는 null
-   */
-  async findUnique(model, queryArgs, ttl = 3600) {
-    return this.cacheAndFetch(model, 'findUnique', queryArgs, ttl);
-  }
-
-  /**
-   * 첫 번째 데이터를 조회하고 캐싱
-   * @param {string} model - Prisma 모델 이름
-   * @param {Object} queryArgs - 쿼리 매개변수
-   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
-   * @returns {Promise<Object|null>} - 조회된 데이터 객체 또는 null
-   */
-  async findFirst(model, queryArgs, ttl = 3600) {
-    return this.cacheAndFetch(model, 'findFirst', queryArgs, ttl);
-  }
-
-  /**
-   * 데이터 생성 및 캐시 무효화
-   * @param {string} model - Prisma 모델 이름
-   * @param {Object} data - 생성할 데이터
-   * @param {Array<string>} [cacheKeysToInvalidate=[]] - 무효화할 캐시 키 목록
-   * @returns {Promise<Object>} - 생성된 데이터
-   */
-  async createData(model, data, cacheKeysToInvalidate = []) {
+  async createData(model, data) {
     const result = await this.prisma[model].create({ data });
-    await this.invalidateMultipleKeys(cacheKeysToInvalidate);
+
+    await this.invalidateGroupCache(model, { id: result.id });
+
     return result;
   }
 
-  /**
-   * 데이터 배치 업데이트 및 캐시 무효화
-   * @param {string} model - Prisma 모델 이름
-   * @param {Object} whereClause - 업데이트할 데이터의 조건
-   * @param {Object} updateFields - 업데이트할 필드
-   * @param {Array<string>} [cacheKeysToInvalidate=[]] - 무효화할 캐시 키 목록
-   * @returns {Promise<Object>} - 업데이트 결과
-   */
-  async updateBatchData(model, whereClause, updateFields, cacheKeysToInvalidate = []) {
+  async updateBatchData(model, whereClause, updateFields) {
     const result = await this.prisma[model].updateMany({
       where: whereClause,
       data: updateFields,
     });
-    await this.invalidateMultipleKeys(cacheKeysToInvalidate);
+
+    await this.invalidateGroupCache(model, whereClause);
+
     return result;
   }
 
-  /**
-   * 트랜잭션 처리 및 다중 캐시 무효화
-   * @param {Array<Function>} queries - 실행할 트랜잭션 쿼리 배열
-   * @param {Array<string>} [cacheKeysToInvalidate=[]] - 무효화할 캐시 키 목록
-   * @returns {Promise<Object>} - 트랜잭션 결과
-   */
-  async executeTransaction(queries, cacheKeysToInvalidate = []) {
-    const result = await this.prisma.$transaction(queries);
-    await this.invalidateMultipleKeys(cacheKeysToInvalidate);
-    return result;
-  }
-
-  /**
-   * 페이지네이션 지원 데이터 조회 및 캐싱
-   * @param {string} model - Prisma 모델 이름
-   * @param {number} [page=1] - 조회할 페이지 번호
-   * @param {number} [limit=10] - 페이지당 데이터 개수
-   * @param {string} cacheKeyPrefix - 캐시 키의 접두사
-   * @returns {Promise<Array>} - 조회된 페이지 데이터 배열
-   */
-  async getPagedData(model, page = 1, limit = 10, cacheKeyPrefix) {
-    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}`;
-    let cachedData = await this.redis.get(cacheKey);
-    if (cachedData) {
-      logger.info(`캐시에서 페이지 데이터 조회: ${cacheKey}`);
-      return cachedData;
-    }
-
-    const skip = (page - 1) * limit;
-    const dbData = await this.prisma[model].findMany({
-      skip,
-      take: limit,
+  async deleteData(model, whereClause) {
+    const result = await this.prisma[model].deleteMany({
+      where: whereClause,
     });
 
-    await this.redis.set(cacheKey, dbData, 3600);
+    await this.invalidateGroupCache(model, whereClause);
+
+    return result;
+  }
+
+  async findMany(model, queryArgs, ttl = 3600) {
+    const cacheKey = this.generateCacheKey(model, 'findMany', queryArgs);
+    const group = this.generateCacheGroup(model, queryArgs); // 자동 그룹 생성
+
+    let cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+
+    const dbData = await this.prisma[model].findMany(queryArgs);
+    if (dbData) {
+      await this.setCache(cacheKey, group, dbData, ttl);
+    }
+
     return dbData;
   }
 
-  /**
-   * 고유 캐시 키 생성
-   * @param {string} model - 모델 이름
-   * @param {string} operation - 작업 종류
-   * @param {Object} params - 쿼리 매개변수
-   * @returns {string} - 생성된 캐시 키
-   */
-  generateCacheKey(model, operation, params) {
-    return `${model}_${operation}_${JSON.stringify(params)}`;
+  async findUnique(model, queryArgs, ttl = 3600) {
+    const cacheKey = this.generateCacheKey(model, 'findUnique', queryArgs);
+    const group = this.generateCacheGroup(model, queryArgs); // 자동 그룹 생성
+
+    let cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+
+    const dbData = await this.prisma[model].findUnique(queryArgs);
+    if (dbData) {
+      await this.setCache(cacheKey, group, dbData, ttl);
+    }
+
+    return dbData;
   }
 
-  /**
-   * 여러 캐시 키를 무효화
-   * @param {Array<string>} cacheKeys - 무효화할 캐시 키 배열
-   * @returns {Promise<void>} - 무효화 완료 시 반환
-   */
-  async invalidateMultipleKeys(cacheKeys) {
-    if (cacheKeys.length) {
-      await Promise.all(cacheKeys.map((key) => this.redis.invalidate(key)));
+  async findFirst(model, queryArgs, ttl = 3600) {
+    const cacheKey = this.generateCacheKey(model, 'findFirst', queryArgs);
+    const group = this.generateCacheGroup(model, queryArgs); // 자동 그룹 생성
+
+    let cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
     }
+
+    const dbData = await this.prisma[model].findFirst(queryArgs);
+    if (dbData) {
+      await this.setCache(cacheKey, group, dbData, ttl);
+    }
+
+    return dbData;
+  }
+
+  generateCacheKey(model, operation, params) {
+    return `${model}_${operation}_${JSON.stringify(params)}`;
   }
 }
 
