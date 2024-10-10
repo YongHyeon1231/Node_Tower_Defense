@@ -51,11 +51,9 @@ export const handlerEvent = async (io, socket, data) => {
   const event = response.event || 'response';
   response.event = undefined;
 
-  if (broadcast) {
-    io.emit(broadcast.event, broadcast.data);
-  } else {
-    socket.emit(event, response);
-  }
+  io.emit(broadcast.event, broadcast.data);
+  socket.emit(event, response);
+
   logger.info(`handler. br[${broadcast}] ${event} - ${JSON.stringify(response)}`);
 };
 
