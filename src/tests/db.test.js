@@ -5,7 +5,7 @@ const prisma = db.prisma;
 await db.redis.connect();
 
 // 데이터 넣는 예제
-const email = 'test@test.com';
+const email = 'test3@test.com';
 const playerData = {
   email,
   password: 'dkdkdkdkdladpdp1!',
@@ -13,21 +13,7 @@ const playerData = {
   highScore: 0,
 };
 
-const createPlayer = async () => {
-  return prisma.player.create({
-    data: playerData,
-  });
-};
-//await db.setData(`email:${email}`, playerData, createPlayer);
+await db.createData('player', playerData);
 
-//값 가져오기 예제
-const findPlayer = async () => {
-  return prisma.player.findUnique({
-    where: {
-      email,
-    },
-  });
-};
-
-const result = await db.getData(`email:${email}`, findPlayer);
+const result = await db.findUnique('player', { where: { email } });
 console.log(result);

@@ -1,91 +1,161 @@
+import redisManager from './redis.manager.js';
+import prismaManager from './prisma.manager.js';
 import logger from '../libs/logger.js';
-import prisma from './prisma.manager.js';
-import redis from './redis.manager.js';
 
-/** Redis-Prisma 캐싱 전략 구현한 클래스
- *  db.prisma - 프리스마 인스턴스 접근
- *  db.redis - 레디스 매니저 접근
- */
-class databaseServiceManager {
-  constructor(prisma, redis) {
-    this.prisma = prisma;
+class DatabaseServiceManager {
+  constructor(redis, prisma) {
     this.redis = redis;
+    this.prisma = prisma;
   }
 
   /**
-   * 데이터 불러오는 함수
-   *
-   * @param {String} cacheKey 레디스에서 값이 있는지 검사하기위한 캐시 키
-   * @param {function():dbData} dbQueryCallback 없을 경우 mysql에서 불러올 쿼리
-   * @param {Number} ttl 레디스에 캐시를 저장할 기간
-   * @returns cachedData
+   * 공통 캐싱 및 데이터 조회 처리
+   * @param {string} model - Prisma 모델 이름
+   * @param {string} operation - 수행할 작업 (findMany, findUnique, findFirst)
+   * @param {Object} queryArgs - 쿼리 매개변수
+   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
+   * @returns {Promise<Object>} - 조회된 데이터
    */
-  getData = async (cacheKey, dbQueryCallback, ttl = 3600) => {
-    let cachedData = await redis.get(cacheKey);
+  async cacheAndFetch(model, operation, queryArgs, ttl = 3600) {
+    const cacheKey = this.generateCacheKey(model, operation, queryArgs);
+
+    let cachedData = await this.redis.get(cacheKey);
     if (cachedData) {
-      console.log(`Cached Return : ${cacheKey} => ${cachedData}`);
+      logger.info(`캐시 데이터 조회: ${cacheKey}`);
       return JSON.parse(cachedData);
     }
 
-    const dbData = await dbQueryCallback();
+    const dbData = await this.prisma[model][operation](queryArgs);
     if (dbData) {
-      await this.saveCache(cacheKey, dbData);
+      await this.redis.set(cacheKey, JSON.stringify(dbData), ttl);
     }
 
     return dbData;
-  };
+  }
 
-  setData = async (cacheKey, data, dbCallback) => {
-    let jobs = [dbCallback(data), this.saveCache(cacheKey, data)];
-    await Promise.all(jobs);
-  };
-
-  /** 데이터 업데이트 시 DB에 우선 작업 후, Redis 캐시 무효화
-   *
-   * @param {String} cacheKey
-   * @param {function():dbData} dbUpdateCallback
-   * @returns updatedData
+  /**
+   * 다수의 데이터를 조회하고 캐싱
+   * @param {string} model - Prisma 모델 이름
+   * @param {Object} queryArgs - 쿼리 매개변수
+   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
+   * @returns {Promise<Array>} - 조회된 데이터 배열
    */
-  update = async (cacheKey, dbUpdateCallback, invalidate = false) => {
-    let updatedData = null;
+  async findMany(model, queryArgs, ttl = 3600) {
+    return this.cacheAndFetch(model, 'findMany', queryArgs, ttl);
+  }
 
-    let jobs = [dbUpdateCallback];
-    if (invalidate) {
-      jobs.push(invalidatedCache(cacheKey));
-    }
-
-    await Promise.all(jobs);
-    return updatedData;
-  };
-
-  /** 캐시 무효화
-   *
-   * @param {String} cacheKey
+  /**
+   * 단일 데이터를 조회하고 캐싱
+   * @param {string} model - Prisma 모델 이름
+   * @param {Object} queryArgs - 쿼리 매개변수
+   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
+   * @returns {Promise<Object|null>} - 조회된 데이터 객체 또는 null
    */
-  invalidatedCache = async (cacheKey) => {
-    await redis.del(cacheKey);
-  };
+  async findUnique(model, queryArgs, ttl = 3600) {
+    return this.cacheAndFetch(model, 'findUnique', queryArgs, ttl);
+  }
 
-  transaction = async (cacheKey, dbTransactionCallback, invalidate = false) => {
-    let result = null;
+  /**
+   * 첫 번째 데이터를 조회하고 캐싱
+   * @param {string} model - Prisma 모델 이름
+   * @param {Object} queryArgs - 쿼리 매개변수
+   * @param {number} [ttl=3600] - 캐시 유효 시간 (기본값: 3600초)
+   * @returns {Promise<Object|null>} - 조회된 데이터 객체 또는 null
+   */
+  async findFirst(model, queryArgs, ttl = 3600) {
+    return this.cacheAndFetch(model, 'findFirst', queryArgs, ttl);
+  }
 
-    let jobs = [
-      prisma.$transaction(async (prisma) => {
-        return await dbTransactionCallback(prisma);
-      }),
-    ];
-
-    if (invalidate) {
-      jobs.push(this.invalidatedCache(cacheKey));
-    }
-    await Promise.all(jobs);
+  /**
+   * 데이터 생성 및 캐시 무효화
+   * @param {string} model - Prisma 모델 이름
+   * @param {Object} data - 생성할 데이터
+   * @param {Array<string>} [cacheKeysToInvalidate=[]] - 무효화할 캐시 키 목록
+   * @returns {Promise<Object>} - 생성된 데이터
+   */
+  async createData(model, data, cacheKeysToInvalidate = []) {
+    const result = await this.prisma[model].create({ data });
+    await this.invalidateMultipleKeys(cacheKeysToInvalidate);
     return result;
-  };
+  }
 
-  saveCache = async (cacheKey, data, ttl = 3600) => {
-    return redis.set(cacheKey, JSON.stringify(data), { ttlType: 'EX', ttl });
-  };
+  /**
+   * 데이터 배치 업데이트 및 캐시 무효화
+   * @param {string} model - Prisma 모델 이름
+   * @param {Object} whereClause - 업데이트할 데이터의 조건
+   * @param {Object} updateFields - 업데이트할 필드
+   * @param {Array<string>} [cacheKeysToInvalidate=[]] - 무효화할 캐시 키 목록
+   * @returns {Promise<Object>} - 업데이트 결과
+   */
+  async updateBatchData(model, whereClause, updateFields, cacheKeysToInvalidate = []) {
+    const result = await this.prisma[model].updateMany({
+      where: whereClause,
+      data: updateFields,
+    });
+    await this.invalidateMultipleKeys(cacheKeysToInvalidate);
+    return result;
+  }
+
+  /**
+   * 트랜잭션 처리 및 다중 캐시 무효화
+   * @param {Array<Function>} queries - 실행할 트랜잭션 쿼리 배열
+   * @param {Array<string>} [cacheKeysToInvalidate=[]] - 무효화할 캐시 키 목록
+   * @returns {Promise<Object>} - 트랜잭션 결과
+   */
+  async executeTransaction(queries, cacheKeysToInvalidate = []) {
+    const result = await this.prisma.$transaction(queries);
+    await this.invalidateMultipleKeys(cacheKeysToInvalidate);
+    return result;
+  }
+
+  /**
+   * 페이지네이션 지원 데이터 조회 및 캐싱
+   * @param {string} model - Prisma 모델 이름
+   * @param {number} [page=1] - 조회할 페이지 번호
+   * @param {number} [limit=10] - 페이지당 데이터 개수
+   * @param {string} cacheKeyPrefix - 캐시 키의 접두사
+   * @returns {Promise<Array>} - 조회된 페이지 데이터 배열
+   */
+  async getPagedData(model, page = 1, limit = 10, cacheKeyPrefix) {
+    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}`;
+    let cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      logger.info(`캐시에서 페이지 데이터 조회: ${cacheKey}`);
+      return cachedData;
+    }
+
+    const skip = (page - 1) * limit;
+    const dbData = await this.prisma[model].findMany({
+      skip,
+      take: limit,
+    });
+
+    await this.redis.set(cacheKey, dbData, 3600);
+    return dbData;
+  }
+
+  /**
+   * 고유 캐시 키 생성
+   * @param {string} model - 모델 이름
+   * @param {string} operation - 작업 종류
+   * @param {Object} params - 쿼리 매개변수
+   * @returns {string} - 생성된 캐시 키
+   */
+  generateCacheKey(model, operation, params) {
+    return `${model}_${operation}_${JSON.stringify(params)}`;
+  }
+
+  /**
+   * 여러 캐시 키를 무효화
+   * @param {Array<string>} cacheKeys - 무효화할 캐시 키 배열
+   * @returns {Promise<void>} - 무효화 완료 시 반환
+   */
+  async invalidateMultipleKeys(cacheKeys) {
+    if (cacheKeys.length) {
+      await Promise.all(cacheKeys.map((key) => this.redis.invalidate(key)));
+    }
+  }
 }
 
-const db = new databaseServiceManager(prisma, redis);
+const db = new DatabaseServiceManager(redisManager, prismaManager);
 export default db;

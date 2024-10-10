@@ -7,8 +7,6 @@ const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = env;
 class RedisServiceManager {
   constructor() {
     this.client = null;
-    this.queue = [];
-    this.isProcessing = false;
   }
 
   async connect() {
@@ -25,184 +23,85 @@ class RedisServiceManager {
             return delay;
           },
         });
-        logger.info('Redis 연결');
+        logger.info('Redis 연결 성공');
       } catch (error) {
-        console.error('Redis 연결 실패:', error);
+        logger.error('Redis 연결 실패:', error);
         this.client = null;
         throw new Error('Redis 연결 실패로 더 이상 재시도하지 않습니다.');
       }
     }
   }
-
-  enqueueCommand(commandFn) {
-    return new Promise((resolve, reject) => {
-      this.queue.push({ commandFn, resolve, reject });
-      this.processQueue();
-    });
-  }
-
-  async processQueue() {
-    if (this.isProcessing || this.queue.length === 0) {
-      return;
-    }
-
-    this.isProcessing = true;
-
-    while (this.queue.length > 0) {
-      const { commandFn, resolve, reject } = this.queue.shift();
-
-      try {
-        const result = await commandFn();
-        resolve(result);
-      } catch (error) {
-        console.error('Redis processQueue error:', commandFn.toString());
-        reject(error);
-      }
-    }
-
-    this.isProcessing = false;
-  }
-
-  async keys(pattern) {
-    return this.enqueueCommand(() => this.client.keys(pattern));
-  }
-
-  // String Commands
-  async set(key, value, options = null) {
+  // Redis 기본 명령어
+  async set(key, value, ttl = 3600) {
     const stringValue = typeof value === 'object' ? JSON.stringify(value) : value;
-    const args = [key, stringValue];
-    if (options) {
-      Object.entries(options).forEach(([option, value]) => {
-        args.push(value);
-      });
-    }
-    return this.enqueueCommand(() => {
-      return this.client.set(...args);
-    });
+    return this.client.set(key, stringValue, 'EX', ttl);
   }
 
   async get(key) {
-    return this.enqueueCommand(() => this.client.get(key));
+    const value = await this.client.get(key);
+    return JSON.parse(value);
   }
 
-  async setEx(key, value, seconds) {
-    return this.enqueueCommand(() => this.client.setex(key, seconds, value));
-  }
-
-  async del(...keys) {
-    return this.enqueueCommand(() => this.client.del(...keys));
-  }
-
-  // Hash Commands
+  // Hash 데이터 명령어
   async hSet(key, field, value) {
-    if (typeof field === 'object') {
-      return this.enqueueCommand(() => this.client.hset(key, field)); // field is an object
-    } else {
-      return this.enqueueCommand(() => this.client.hset(key, field, value)); // field is a single field
-    }
-  }
-
-  async hLen(key) {
-    return this.enqueueCommand(() => this.client.hlen(key));
+    return this.client.hset(key, field, JSON.stringify(value));
   }
 
   async hGet(key, field) {
-    return this.enqueueCommand(() => this.client.hget(key, field));
+    const data = await this.client.hget(key, field);
+    return JSON.parse(data);
   }
 
-  async hGetAll(key) {
-    return this.enqueueCommand(() => this.client.hgetall(key));
-  }
-
-  async hDel(key, ...fields) {
-    return this.enqueueCommand(() => this.client.hdel(key, ...fields));
-  }
-
-  // List Commands
+  // List 데이터 명령어
   async rPush(key, ...values) {
-    return this.enqueueCommand(() => this.client.rpush(key, ...values));
+    return this.client.rpush(key, ...values);
   }
 
   async lPop(key) {
-    return this.enqueueCommand(() => this.client.lpop(key));
+    return this.client.lpop(key);
   }
 
-  async rPop(key) {
-    return this.enqueueCommand(() => this.client.rpop(key));
-  }
-
-  // Set Commands
+  // Set 데이터 명령어
   async sAdd(key, ...members) {
-    return this.enqueueCommand(() => this.client.sadd(key, ...members));
+    return this.client.sadd(key, ...members);
   }
 
   async sMembers(key) {
-    return this.enqueueCommand(() => this.client.smembers(key));
+    return this.client.smembers(key);
   }
 
-  async sRem(key, ...members) {
-    return this.enqueueCommand(() => this.client.srem(key, ...members));
-  }
-
+  // Sorted Set 명령어
   async zAdd(key, score, member) {
-    return this.enqueueCommand(() => this.client.zadd(key, score, member));
+    return this.client.zadd(key, score, member);
   }
 
-  async zRange(key, start, stop, options = {}) {
-    const args = [key, start, stop];
-
-    if (options.WITHSCORES) {
-      args.push('WITHSCORES');
-    }
-
-    if (options.REV) {
-      return this.enqueueCommand(() => this.client.zrevrange(...args)); // 내림차순
-    }
-
-    return this.enqueueCommand(() => this.client.zrange(...args)); // 기본 (오름차순)
+  async zRange(key, start, stop) {
+    return this.client.zrange(key, start, stop);
   }
 
-  async zRem(key, ...members) {
-    return this.enqueueCommand(() => this.client.zrem(key, ...members));
+  // 캐시 무효화
+  async invalidate(key) {
+    return this.client.del(key);
   }
 
-  // Other Common Commands
-  async exists(...keys) {
-    return this.enqueueCommand(() => this.client.exists(...keys));
+  // 트랜잭션 처리
+  async transaction(commands) {
+    const pipeline = this.client.multi();
+    commands.forEach((cmd) => {
+      pipeline[cmd.type](...cmd.args);
+    });
+    return pipeline.exec();
   }
 
-  async incr(key) {
-    return this.enqueueCommand(() => this.client.incr(key));
-  }
-
-  async incrBy(key, increment) {
-    return this.enqueueCommand(() => this.client.incrby(key, increment));
-  }
-
-  async decr(key) {
-    return this.enqueueCommand(() => this.client.decr(key));
-  }
-
-  async decrBy(key, decrement) {
-    return this.enqueueCommand(() => this.client.decrby(key, decrement));
-  }
-
-  async expire(key, seconds) {
-    return this.enqueueCommand(() => this.client.expire(key, seconds));
-  }
-
+  // TTL 확인
   async ttl(key) {
-    return this.enqueueCommand(() => this.client.ttl(key));
-  }
-
-  async lRange(key, start, stop) {
-    return this.enqueueCommand(() => this.client.lrange(key, start, stop));
+    return this.client.ttl(key);
   }
 
   async disconnect() {
     if (this.client) {
       await this.client.quit();
-      console.log('Redis 연결이 종료되었습니다.');
+      logger.info('Redis 연결 종료');
     }
   }
 }

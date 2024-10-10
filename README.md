@@ -83,6 +83,7 @@ yarn run dev
 - 프리스마 사용 중 문제 발생을 최소화 하기 위해 [Prisma 협업 문서](./Docs/prisma.md)를 읽어주세요.
 - REST API 작업 요령은 이 [문서](./Docs/rest.md)를 참고해주세요.
 - Socket 요청 핸들링 작업 요령은 이 [문서](./Docs/socket.md)를 참고해주세요.
+- 데이터베이스의 사용 방법을 고려하고 싶다면 이 [문서](./Docs/database.md)를 참고해주세요.
 
 ----
 
