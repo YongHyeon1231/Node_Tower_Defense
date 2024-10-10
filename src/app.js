@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import initSocket from './init/socket.js';
 import { loadGameAssets } from './init/assets.js';
-import redisServiceManager from './managers/redis.manager.js';
+import db from './managers/database.manager.js';
 import env from './libs/env.js';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -75,6 +75,7 @@ app.use((error, req, res, next) => {
   res.status(statusCode).json({ success: false, message });
 });
 
+await db.redis.connect();
 const server = createServer(app);
 //app.use(express.static('public'));
 //await redisServiceManager.connect();

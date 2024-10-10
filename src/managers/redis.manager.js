@@ -1,5 +1,7 @@
 import Redis from 'ioredis';
 import env from '../libs/env.js';
+import logger from '../libs/logger.js';
+
 const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = env;
 
 class RedisServiceManager {
@@ -68,11 +70,14 @@ class RedisServiceManager {
   // String Commands
   async set(key, value, options = null) {
     const stringValue = typeof value === 'object' ? JSON.stringify(value) : value;
+    const args = [key, stringValue];
+    if (options) {
+      Object.entries(options).forEach(([option, value]) => {
+        args.push(value);
+      });
+    }
     return this.enqueueCommand(() => {
-      if (options) {
-        return this.client.set(key, stringValue, options);
-      }
-      return this.client.set(key, stringValue);
+      return this.client.set(...args);
     });
   }
 
@@ -197,7 +202,7 @@ class RedisServiceManager {
   async disconnect() {
     if (this.client) {
       await this.client.quit();
-      logger.info('Redis 연결이 종료되었습니다.');
+      console.log('Redis 연결이 종료되었습니다.');
     }
   }
 }
