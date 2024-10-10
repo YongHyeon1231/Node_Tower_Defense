@@ -1,4 +1,5 @@
 import db from '../managers/database.manager.js';
+//실행 명령어 : node .\src\tests\db.test.js
 
 const prisma = db.prisma;
 await db.redis.connect();
@@ -17,14 +18,16 @@ const createPlayer = async () => {
     data: playerData,
   });
 };
-await db.setData(`email:${email}`, playerData, createPlayer);
+//await db.setData(`email:${email}`, playerData, createPlayer);
 
 //값 가져오기 예제
 const findPlayer = async () => {
   return prisma.player.findUnique({
     where: {
-      id: 1,
+      email,
     },
   });
 };
-await db.getData(`email:${email}`, findPlayer);
+
+const result = await db.getData(`email:${email}`, findPlayer);
+console.log(result);

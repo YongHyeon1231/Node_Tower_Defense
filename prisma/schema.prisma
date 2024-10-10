@@ -10,10 +10,10 @@ datasource db {
 
 model Player {
   id                    Int                   @id @default(autoincrement())
-  email                 String                @db.VarChar(255)
+  email                 String                @unique @db.VarChar(255)
   password              String                @db.VarChar(255)
   name                  String                @db.VarChar(255)
-  highScore             Int
+  highScore             Int                   @default(0)
   PlayerMonsterStatuses PlayerMonsterStatus[]
   PlayerProgresses      PlayerProgress[]
   PlayerTowers          PlayerTower[]
