@@ -9,9 +9,6 @@ const initSocket = async (server) => {
   const io = new SocketIO(server, {
     cors: {
       origin,
-      methods: ['GET', 'POST'],
-      //    allowedHeaders: ['my-custom-header'],
-      credentials: true,
     },
   });
 

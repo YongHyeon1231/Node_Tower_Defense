@@ -9,11 +9,16 @@ import cors from 'cors';
 import allRoutes from './rest/routes/routes.js';
 import logger from './libs/logger.js';
 
-const { SERVER_BIND, SERVER_PORT } = env;
+const { SERVER_BIND, SERVER_PORT, SERVER_HOST } = env;
+
+const corsOptions = {
+  origin: `http://${SERVER_HOST}:${SERVER_PORT}`,
+};
 
 const app = express();
+app.use(cors(corsOptions));
+app.use(express.static('public'));
 app.use(helmet());
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
