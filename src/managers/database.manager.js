@@ -2,6 +2,10 @@ import logger from '../libs/logger.js';
 import prisma from './prisma.manager.js';
 import redis from './redis.manager.js';
 
+/** Redis-Prisma 캐싱 전략 구현한 클래스
+ *  db.prisma - 프리스마 인스턴스 접근
+ *  db.redis - 레디스 매니저 접근
+ */
 class databaseServiceManager {
   constructor(prisma, redis) {
     this.prisma = prisma;
