@@ -19,11 +19,11 @@ class RedisServiceManager {
           autoResubscribe: true,
           retryStrategy: (times) => {
             const delay = Math.min(times * 100, 3000); // 재시도 지연 시간 설정
-            console.log(`Redis 재연결 시도 중... ${times}회차 시도, ${delay}ms 후 재연결 시도`);
+            logger.info(`Redis 재연결 시도 중... ${times}회차 시도, ${delay}ms 후 재연결 시도`);
             return delay;
           },
         });
-        console.log('Redis 연결');
+        logger.info('Redis 연결');
       } catch (error) {
         console.error('Redis 연결 실패:', error);
         this.client = null;
@@ -197,7 +197,7 @@ class RedisServiceManager {
   async disconnect() {
     if (this.client) {
       await this.client.quit();
-      console.log('Redis 연결이 종료되었습니다.');
+      logger.info('Redis 연결이 종료되었습니다.');
     }
   }
 }

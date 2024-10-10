@@ -7,8 +7,9 @@ import env from './libs/env.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import allRoutes from './rest/routes/routes.js';
+import logger from './libs/logger.js';
 
-const { SERVER_PORT } = env;
+const { SERVER_BIND, SERVER_PORT } = env;
 
 const app = express();
 app.use(helmet());
@@ -74,13 +75,13 @@ const server = createServer(app);
 //await redisServiceManager.connect();
 await initSocket(server);
 
-server.listen(SERVER_PORT, '0.0.0.0', async () => {
-  console.log(`Server is running on port : ${SERVER_PORT}`);
+server.listen(SERVER_PORT, SERVER_BIND, async () => {
+  logger.info(`Server is running on : ${SERVER_BIND}:${SERVER_PORT}`);
 
   try {
     const assets = await loadGameAssets();
-    console.log(`Assets loaded success `);
+    logger.info(`Assets loaded success `);
   } catch (e) {
-    console.error(`Assets loaded failed : ${e}`);
+    logger.error(`Assets loaded failed : ${e}`);
   }
 });

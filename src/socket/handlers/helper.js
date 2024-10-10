@@ -4,14 +4,15 @@ import { getFirstPlace } from '../models/scoreborad.model.js';
 import { createStage, setStage } from '../models/stage.model.js';
 import { getUser, removeUser, userCount } from '../models/user.model.js';
 import handlerMappings from './handlerMapping.js';
+import logger from '../../libs/logger.js';
 
 export const handleDisconnect = async (socket, uuid) => {
   await removeUser(uuid);
-  console.log(`User disconnected : ${uuid} / userCount : ${await userCount()}`);
+  logger.info(`User disconnected : ${uuid} / userCount : ${await userCount()}`);
 };
 
 export const handleConnection = async (socket, uuid) => {
-  console.log(`New user connected : ${uuid} with socket ID: ${socket.id}`);
+  logger.info(`New user connected : ${uuid} with socket ID: ${socket.id}`);
 
   createStage(uuid);
   const { stages, items, itemUnlocks } = getGameAssets();
@@ -55,7 +56,7 @@ export const handlerEvent = async (io, socket, data) => {
   } else {
     socket.emit(event, response);
   }
-  console.log(`handler. br[${broadcast}] ${event} - ${JSON.stringify(response)}`);
+  logger.info(`handler. br[${broadcast}] ${event} - ${JSON.stringify(response)}`);
 };
 
 export const isValidScore = (stage, score) => {

@@ -1,5 +1,5 @@
 import winston from 'winston';
-import _ from 'winston-daily-rotate-file';
+import 'winston-daily-rotate-file';
 
 /**
  * 로그 메시지 형식을 정의합니다.
@@ -36,7 +36,7 @@ const logger = winston.createLogger({
   level: 'info', // 로그 레벨 설정
   format: winston.format.combine(
     winston.format.timestamp(), // 타임스탬프 추가
-    logFormat // 로그 형식 적용
+    logFormat, // 로그 형식 적용
   ),
   transports: [
     transport, // 파일에 로그 저장

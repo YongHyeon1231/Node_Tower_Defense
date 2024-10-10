@@ -18,7 +18,7 @@ const requiredEnv = {
     'REFRESH_EXPIRES_IN',
     'ALGORITHM',
   ],
-  SERVER: ['PORT'],
+  SERVER: ['PORT', 'HOST', 'BIND'],
   REDIS: ['HOST', 'PORT', 'PASSWORD'],
 };
 
