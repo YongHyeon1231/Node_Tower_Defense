@@ -1,9 +1,8 @@
 import ApiError from '../../errors/api-error.js';
-import prisma from '../../libs/prisma.js';
-import { createUser } from '../repositories/users.repository.js';
+import prisma from '../../managers/prisma.manager.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import userValidatorJoi from '../middleware/validators/userValidator.middleware.js';
+
 import {
   createUser,
   findUserById,
@@ -11,14 +10,12 @@ import {
   findUserByUsername,
 } from '../repositories/users.repository.js';
 
-export const signup = async ({ userId, password, userName }) => {
-  
+export const signup = async ({ email, password, name }) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   // 성공적으로 통과할 경우
   return {
     message: '회원가입 성공',
-    userId,
-    userName,
+    name,
   };
 };
 
