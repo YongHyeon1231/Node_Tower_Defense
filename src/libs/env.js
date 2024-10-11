@@ -16,10 +16,7 @@ const requiredEnv = {
     'AUDIENCE',
     'REFRESH_SECRET',
     'REFRESH_EXPIRES_IN',
-<<<<<<< HEAD
     'ALGORITHM',
-=======
->>>>>>> PYH
   ],
   SERVER: ['PORT', 'HOST', 'BIND'],
   REDIS: ['HOST', 'PORT', 'PASSWORD'],
