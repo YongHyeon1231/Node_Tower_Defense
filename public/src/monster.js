@@ -15,13 +15,15 @@ export class Monster {
     this.speed = 2; // 몬스터의 이동 속도
     this.image = monsterImages[this.monsterNumber]; // 몬스터 이미지
     this.level = level; // 몬스터 레벨
+    this.killGold = this.monsterNumber * 10 + 20;
+    this.killScore = this.monsterNumber * level;
     this.init(level);
   }
 
   init(level) {
-    this.maxHp = 100 + 10 * level; // 몬스터의 현재 HP
+    this.maxHp = 90 + 10 * level; // 몬스터의 현재 HP
     this.hp = this.maxHp; // 몬스터의 현재 HP
-    this.attackPower = 10 + 1 * level; // 몬스터의 공격력 (기지에 가해지는 데미지)
+    this.attackPower = 9 + 1 * level; // 몬스터의 공격력 (기지에 가해지는 데미지)
   }
 
   move(base) {

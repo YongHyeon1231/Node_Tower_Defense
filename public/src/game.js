@@ -14,12 +14,14 @@ const NUM_OF_MONSTERS = 5; // 몬스터 개수
 
 let userGold = 0; // 유저 골드
 let base; // 기지 객체
-let baseHp = 0; // 기지 체력
+// 플레이어의 기지 체력
+let baseHp = 1000; // 기지 체력
 
-let towerCost = 0; // 타워 구입 비용
-let numOfInitialTowers = 0; // 초기 타워 개수
-let monsterLevel = 0; // 몬스터 레벨
-let monsterSpawnInterval = 0; // 몬스터 생성 주기
+let towerCost = 100; // 타워 구입 비용
+let numOfInitialTowers = 3; // 초기 타워 개수
+let monsterLevel = 1; // 몬스터 레벨
+// 몬스터 생성 주기는 스테이지별로 받아와서 생성
+let monsterSpawnInterval = 1000; // 몬스터 생성 주기
 const monsters = [];
 const towers = [];
 
@@ -134,7 +136,7 @@ function getRandomPositionNearPath(maxDistance) {
   const offsetY = (Math.random() - 0.5) * 2 * maxDistance;
 
   return {
-    x: posX + offsetX,
+    x: Math.floor((posX + offsetX) * 0.8), // 타워가 기지에 너무 붙어서 생성되는 것 방지 (x위치 보정)
     y: posY + offsetY,
   };
 }
@@ -144,6 +146,7 @@ function placeInitialTowers() {
     타워를 초기에 배치하는 함수입니다.
     무언가 빠진 코드가 있는 것 같지 않나요? 
   */
+  // numOfInitialTowers를 플레이어에서 받아와서 생성
   for (let i = 0; i < numOfInitialTowers; i++) {
     const { x, y } = getRandomPositionNearPath(200);
     const tower = new Tower(x, y, towerCost);
@@ -157,10 +160,13 @@ function placeNewTower() {
     타워를 구입할 수 있는 자원이 있을 때 타워 구입 후 랜덤 배치하면 됩니다.
     빠진 코드들을 채워넣어주세요! 
   */
-  const { x, y } = getRandomPositionNearPath(200);
-  const tower = new Tower(x, y);
-  towers.push(tower);
-  tower.draw(ctx, towerImage);
+  if (userGold >= towerCost) {
+    const { x, y } = getRandomPositionNearPath(200);
+    const tower = new Tower(x, y);
+    towers.push(tower);
+    tower.draw(ctx, towerImage);
+    userGold -= towerCost;
+  }
 }
 
 function placeBase() {
@@ -170,7 +176,10 @@ function placeBase() {
 }
 
 function spawnMonster() {
-  monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
+  if (monsters.length < 10) {
+    // 10이 아니라 나중에 스테이지별로 몬스터의 수를 받아와야함
+    monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
+  }
 }
 
 function gameLoop() {
@@ -217,18 +226,27 @@ function gameLoop() {
       monster.draw(ctx);
     } else {
       /* 몬스터가 죽었을 때 */
-      monsters.splice(i, 1);
+      //monsters.splice(i, 1);
+      //점수, 골드 추가
+      killMonster(i);
     }
   }
+  //스테이지(monsterLevel) 업데이트
+  monsterLevel = Math.floor(score / 50) + 1;
 
   requestAnimationFrame(gameLoop); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
+}
+
+function killMonster(i) {
+  userGold += monsters[i].killGold;
+  score += monsters[i].killScore;
+  monsters.splice(i, 1);
 }
 
 function initGame() {
   if (isInitGame) {
     return;
   }
-
   monsterPath = generateRandomMonsterPath(); // 몬스터 경로 생성
   initMap(); // 맵 초기화 (배경, 몬스터 경로 그리기)
   placeInitialTowers(); // 설정된 초기 타워 개수만큼 사전에 타워 배치
@@ -263,6 +281,7 @@ Promise.all([
       initGame();
     }
   */
+  initGame();
 });
 
 const buyTowerButton = document.createElement('button');
