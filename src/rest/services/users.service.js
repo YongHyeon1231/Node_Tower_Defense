@@ -3,13 +3,16 @@ import prisma from '../../libs/prisma.js';
 import { createUser } from '../repositories/users.repository.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import userValidatorJoi from '../middleware/validators/userValidator.middleware.js';
+import {
+  createUser,
+  findUserById,
+  findUserByUserId,
+  findUserByUsername,
+} from '../repositories/users.repository.js';
 
 export const signup = async ({ userId, password, userName }) => {
-  // 유저 아이디가 5글자 미만이면 오류 발생
-  if (!userId || userId.length < 5) {
-    throw new ApiError('아이디는 5글자 이상이어야 합니다.', 400);
-  }
-
+  
   const hashedPassword = await bcrypt.hash(password, 10);
   // 성공적으로 통과할 경우
   return {
@@ -18,16 +21,6 @@ export const signup = async ({ userId, password, userName }) => {
     userName,
   };
 };
-import {
-  checkAthleteOwnership,
-  updateTeam,
-  getAthletesByIds,
-  deleteAthletesByIds,
-  createEnhancedAthlete,
-  getAthleteById,
-  deleteAthleteById,
-  checkIfAthletesInTeam,
-} from '../repositories/athlete-repository.js';
 
 export const login = async ({ userId, password }) => {
   const user = await createUser(userId);
