@@ -12,11 +12,7 @@ const signUpSchema = Joi.object({
 });
 
 const signInSchema = Joi.object({
-<<<<<<< HEAD
-  email: Joi.string().email().alphanum().lowercase().min(4).max(20).required(),
-=======
   email: Joi.string().email().lowercase().min(4).max(20).required(),
->>>>>>> PYH
   password: Joi.string().min(6).max(20).required(),
 });
 
@@ -36,24 +32,12 @@ const userValidatorJoi = {
     }
   },
   signInValidation: async function (req, res, next) {
-<<<<<<< HEAD
-    const validation = await signInSchema.validateAsync(req.body);
-
-    if (validation.error) {
-      console.log(req.origianlUrl, '로그인 인증 실패');
-      let msg = '모두 소문자 그리고 숫자';
-      return res.status(400).json({ message: msg });
-    }
-
-    next();
-=======
     try {
-        const validation = await signInSchema.validateAsync(req.body);
-        next();
-    } catch(error){
-        return enxt(new ApiError(error, 400));
+      const validation = await signInSchema.validateAsync(req.body);
+      next();
+    } catch (error) {
+      return enxt(new ApiError(error, 400));
     }
->>>>>>> PYH
   },
 };
 
