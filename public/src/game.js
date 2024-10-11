@@ -20,6 +20,7 @@ let baseHp = 1000; // 기지 체력
 let towerCost = 100; // 타워 구입 비용
 let numOfInitialTowers = 3; // 초기 타워 개수
 let monsterLevel = 1; // 몬스터 레벨
+
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
 let monsterSpawnInterval = 1000; // 몬스터 생성 주기
 const monsters = [];
