@@ -5,28 +5,6 @@ const { SECURITY_PEPPER } = env;
 
 class Utils extends NoInstance {
   /**
-   * 함수의 파라미터 목록을 반환하는 함수입니다.
-   * 기본값이 지정된 파라미터는 제외됩니다.
-   * @param {Function} fn - 파라미터를 가져올 함수
-   * @returns {string[]} - 파라미터 이름의 배열
-   */
-  static getFunctionParams = (fn) => {
-    const fnStr = fn.toString();
-    const paramMatch = fnStr.match(/\(([^)]*)\)/);
-
-    if (!paramMatch) {
-      return [];
-    }
-
-    // 중괄호 및 불필요한 공백 제거, 기본값이 지정된 파라미터 제외
-    return paramMatch[1]
-      .replace(/[{}]/g, '') // 중괄호 제거
-      .split(',') // 콤마로 나누기
-      .map((param) => param.trim()) // 공백 제거
-      .filter((param) => !param.includes('=')); // 기본값이 있는 파라미터 제외
-  };
-
-  /**
    * 비밀번호에 후추를 추가하는 함수입니다.
    * 후추는 보안을 강화하기 위해 추가되는 문자열입니다.
    * @param {string} password - 원본 비밀번호
