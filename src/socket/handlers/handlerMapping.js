@@ -1,10 +1,10 @@
-import { gameEnd, gameStart } from './game.handler.js';
-import { moveStageHandler } from './stage.handler.js';
-
+const ping = async (uuid, payload) => {
+  return {
+    message: `Pong! ${payload.ping}`,
+  };
+};
 const handlerMappings = {
-  2: gameStart,
-  3: gameEnd,
-  11: moveStageHandler,
+  999: ping,
 };
 
 export default handlerMappings;
