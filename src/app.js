@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import allRoutes from './rest/routes/routes.js';
 import logger from './libs/logger.js';
+import errorHandler from './rest/middleware/errorHandling.middleware.js';
 
 const { SERVER_BIND, SERVER_PORT, SERVER_HOST } = env;
 
@@ -21,17 +22,6 @@ app.use(express.static('public'));
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-const errorHandler = (error, req) => {
-  let message = 'Internal Server Error';
-  let statusCode = 500;
-  if (error instanceof ApiError) {
-    message = error.message;
-    statusCode = error.statusCode;
-  }
-  logger.error(`Error occurred: ${req.url}/${req.method} => ${error}, Status Code: ${statusCode}`);
-  return { message, statusCode };
-};
 
 const routeHandler = (action, requiredParams) => async (req, res) => {
   let success = true;
