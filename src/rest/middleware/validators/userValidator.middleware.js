@@ -12,7 +12,11 @@ const signUpSchema = Joi.object({
 });
 
 const signInSchema = Joi.object({
+<<<<<<< HEAD
   email: Joi.string().email().alphanum().lowercase().min(4).max(20).required(),
+=======
+  email: Joi.string().email().lowercase().min(4).max(20).required(),
+>>>>>>> PYH
   password: Joi.string().min(6).max(20).required(),
 });
 
@@ -32,6 +36,7 @@ const userValidatorJoi = {
     }
   },
   signInValidation: async function (req, res, next) {
+<<<<<<< HEAD
     const validation = await signInSchema.validateAsync(req.body);
 
     if (validation.error) {
@@ -41,6 +46,14 @@ const userValidatorJoi = {
     }
 
     next();
+=======
+    try {
+        const validation = await signInSchema.validateAsync(req.body);
+        next();
+    } catch(error){
+        return enxt(new ApiError(error, 400));
+    }
+>>>>>>> PYH
   },
 };
 
