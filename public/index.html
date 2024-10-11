@@ -35,11 +35,27 @@
       font-size: 16px;
       cursor: pointer;
     }
+    .modal.show {
+        opacity: 1; /* 모달이 나타날 때 opacity를 1로 설정하여 보이게 함 */
+    }
+    .modal-content {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
   </style>
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 </head>
 
 <body>
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <p class="message">메시지 내용</p>
+    </div>
+  </div>
   <div class="button-container">
     <h1 style="color: white">내일배움캠프 Node.js 트랙 타워 디펜스 게임</h1>
     <button id="registerButton">회원가입</button>
