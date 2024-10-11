@@ -1,18 +1,20 @@
 import prisma from '../../managers/prisma.manager.js';
-import { signup } from '../services/users.service.js';
 // import bcrypt from "bcrypt";
 
 // const hashedPassword = await bcrypt.hash(password, 10);
-export const createUser = async ({ userId, password, userName }) => {
-  return prisma.create({
+export const createPlayer = async (name, email, password) => {
+  return await prisma.player.create({
     data: {
-      userId: signup.userId,
-      password: hashedPassword,
-      userName: signup.userName,
+      name: name,
+      password: password,
+      email: email,
     },
   });
-  return res.status(201).json({ message: '회원가입이 완료되었습니다.' });
 };
+
+export const findPlayerByEmail = async (email) => {
+  return await prisma.player.findUnique({where: {email}});
+}
 
 export const findUserById = async (userId) => {
   return await prisma.users.findUnique({ where: { id: userId } });
