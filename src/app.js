@@ -8,6 +8,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 import allRoutes from './rest/routes/routes.js';
 import logger from './libs/logger.js';
+import errorHandler from './rest/middleware/errorHandling.middleware.js';
+import ApiError from './errors/api-error.js';
 
 const { SERVER_BIND, SERVER_PORT, SERVER_HOST } = env;
 
@@ -22,18 +24,7 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const errorHandler = (error, req) => {
-  let message = 'Internal Server Error';
-  let statusCode = 500;
-  if (error instanceof ApiError) {
-    message = error.message;
-    statusCode = error.statusCode;
-  }
-  logger.error(`Error occurred: ${req.url}/${req.method} => ${error}, Status Code: ${statusCode}`);
-  return { message, statusCode };
-};
-
-const routeHandler = (action, requiredParams) => async (req, res) => {
+const routeHandler = (action) => async (req, res) => {
   let success = true;
   let statusCode = 200;
   let message = null;
@@ -44,12 +35,6 @@ const routeHandler = (action, requiredParams) => async (req, res) => {
       ...{ ...req.body, ...req.params, ...req.query },
       ...req.user,
     };
-    // 필수 파라미터 검증
-    const missingParams = requiredParams.filter((param) => param && !`${data[param]}`.trim());
-
-    if (missingParams.length > 0) {
-      throw new ApiError(`Missing required parameters: ${missingParams.join(', ')}`, 422);
-    }
 
     // 서비스 호출 및 결과 반환
     result = await action({ ...data });
@@ -65,8 +50,8 @@ const routeHandler = (action, requiredParams) => async (req, res) => {
 
 //모든 라우팅 등록
 allRoutes.forEach((api) => {
-  const { method, url, action, middleware, requiredParams } = api;
-  app[method](url, ...middleware, routeHandler(action, requiredParams));
+  const { method, url, action, middleware } = api;
+  app[method](url, ...middleware, routeHandler(action));
 });
 
 // 에러 처리 미들웨어
