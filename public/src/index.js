@@ -5,10 +5,18 @@ import { connect, requestGameEnd, requestGameStart } from './Socket.js';
 const buttonContainer = document.querySelector('.button-container');
 
 const createButton = (id, text) => {
-  const loginButton = document.getElementById(id) || document.createElement('button');
-  loginButton.id = id;
-  loginButton.textContent = text;
-  buttonContainer.appendChild(loginButton);
+  let button = document.getElementById(id);
+  let created = false;
+  if (!button) {
+    button = document.createElement('button');
+    buttonContainer.appendChild(button);
+    created = true;
+  }
+
+  button.id = id;
+  button.textContent = text;
+
+  return created;
 };
 
 let token = getLocalStorage('token');
@@ -33,15 +41,17 @@ const initializeIndex = async () => {
     await connect();
   } else {
     setMessage('로그인 하거나 회원가입 해주세요.');
-    createButton('registerButton', '회원가입');
-    createButton('loginButton', '로그인');
+    if (createButton('registerButton', '회원가입')) {
+      document.getElementById('registerButton').addEventListener('click', () => {
+        window.location.href = 'register.html';
+      });
+    }
 
-    document.getElementById('registerButton').addEventListener('click', () => {
-      window.location.href = 'register.html';
-    });
-    document.getElementById('loginButton').addEventListener('click', () => {
-      window.location.href = 'login.html';
-    });
+    if (createButton('loginButton', '로그인')) {
+      document.getElementById('loginButton').addEventListener('click', () => {
+        window.location.href = 'login.html';
+      });
+    }
   }
 };
 
@@ -53,18 +63,20 @@ export const setGameData = (data) => {
   console.log('인덱스에서 세팅된 게임 데이터 : ', gameData.towers[2].damage);
 
   setMessage('원하는 메뉴를 선택해주세요.');
-  createButton('playButton', '게임 플레이');
-  document.getElementById('playButton').addEventListener('click', () => {
-    document.querySelector('.button-container').style.display = 'none';
-    document.getElementById('gameCanvas').style.display = 'block';
-    import('./game.js');
-  });
+  if (createButton('playButton', '게임 플레이')) {
+    document.getElementById('playButton').addEventListener('click', () => {
+      document.querySelector('.button-container').style.display = 'none';
+      document.getElementById('gameCanvas').style.display = 'block';
+      import('./game.js');
+    });
+  }
 
-  createButton('signOut', '로그아웃');
-  document.getElementById('signOut').addEventListener('click', () => {
-    setLocalStorage('token', null);
-    location.reload();
-  });
+  if (createButton('signOut', '로그아웃')) {
+    document.getElementById('signOut').addEventListener('click', () => {
+      setLocalStorage('token', null);
+      location.reload();
+    });
+  }
 };
 
 export const getGameData = () => {
