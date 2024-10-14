@@ -1,9 +1,8 @@
 import { setLocalStorage, getLocalStorage } from '../LocalStorage.js';
-import { setGameData } from '../index.js'
+import { setGameData } from '../index.js';
 
 export const connectHandler = (data) => {
-  setLocalStorage('UUID', data.uuid);
-  console.log("핸들러에 들어온 데이터 : ",data);
+  console.log('핸들러에 들어온 데이터 : ', data);
   setGameData(data);
   // GameManager.setUUID(data.uuid);
   // GameManager.setHighDistance(data.user.highDistance);
