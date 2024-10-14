@@ -11,7 +11,7 @@ export class Tower {
     this.x = x; // 타워 이미지 x 좌표
     this.y = y; // 타워 이미지 y 좌표
     this.width = 40; // 타워 이미지 가로 길이 (이미지 파일 길이에 따라 변경 필요하며 세로 길이와 비율을 맞춰주셔야 합니다!)
-    this.height = 75; // 타워 이미지 세로 길이
+    this.height = 60; // 타워 이미지 세로 길이
     this.attackPower = this.towersData[i].damage; // 타워 공격력
     this.range = this.towersData[i].damageRange; // 타워 사거리
     this.cost = cost; // 타워 구입 비용
@@ -19,6 +19,7 @@ export class Tower {
     this.attackCooltime = this.towersData[i].attackCooltime;
     this.beamDuration = 0; // 타워 광선 지속 시간
     this.target = null; // 타워 광선의 목표
+    this.towerLevel = 0;
   }
 
   draw(ctx, towerImage) {
@@ -41,7 +42,7 @@ export class Tower {
   attack(monster) {
     // 타워가 타워 사정거리 내에 있는 몬스터를 공격하는 메소드이며 사정거리에 닿는지 여부는 game.js에서 확인합니다.
     if (this.cooldown <= 0) {
-      monster.hp -= this.attackPower;
+      monster.hp -= this.attackPower + this.towerLevel * 50;
       this.cooldown = this.attackCooltime; // 3초 쿨타임 (초당 60프레임)
       this.beamDuration = 30; // 광선 지속 시간 (0.5초)
       this.target = monster; // 광선의 목표 설정

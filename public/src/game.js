@@ -28,18 +28,20 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
+const NUM_OF_TOWERS = 3; // 몬스터 개수
 
-let userGold = 0; // 유저 골드
+let userGold = 10000; // 유저 골드
 let base; // 기지 객체
 // 플레이어의 기지 체력
 let baseHp = 1000; // 기지 체력
 
 let towerCost = 100; // 타워 구입 비용
+let upgradeCost = 1000;
 let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
-let monsterSpawnInterval = 1000; // 몬스터 생성 주기
+let monsterSpawnInterval = 60; // 몬스터 생성 주기, 현재는 60프레임, 원래는 1000ms
 const monsters = [];
 const towers = [];
 
@@ -51,8 +53,12 @@ let isInitGame = false;
 const backgroundImage = new Image();
 backgroundImage.src = 'images/bg.webp';
 
-const towerImage = new Image();
-towerImage.src = 'images/tower.png';
+const towerImages = [];
+for (let i = 1; i <= NUM_OF_TOWERS; i++) {
+  const img = new Image();
+  img.src = `images/tower${i}.png`;
+  towerImages.push(img);
+}
 
 const baseImage = new Image();
 baseImage.src = 'images/base.png';
@@ -186,17 +192,17 @@ function placeInitialTowers() {
   // numOfInitialTowers를 플레이어에서 받아와서 생성
   for (let i = 0; i < numOfInitialTowers; i++) {
     let { x, y } = getRandomPositionNearPath(200);
-    for (let j = 0; j < towers.length; j++) {
-      while (!isValidNewCoordinate(towers, x, y)) {
-        const newPosition = getRandomPositionNearPath(200);
-        x = newPosition.x;
-        y = newPosition.y;
-      }
-    }
+    // for (let j = 0; j < towers.length; j++) {
+    //   while (!isValidNewCoordinate(towers, x, y)) {
+    //     const newPosition = getRandomPositionNearPath(200);
+    //     x = newPosition.x;
+    //     y = newPosition.y;
+    //   }
+    // }
     let towerNum = Math.floor(Math.random() * 3);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
-    tower.draw(ctx, towerImage);
+    tower.draw(ctx, towerImages[towerNum]);
   }
 }
 
@@ -207,20 +213,29 @@ function placeNewTower() {
   */
   if (userGold >= towerCost && towers.length < maxTowerNum) {
     let { x, y } = getRandomPositionNearPath(200);
-    for (let j = 0; j < towers.length; j++) {
-      while (!isValidNewCoordinate(towers, x, y)) {
-        const newPosition = getRandomPositionNearPath(200);
-        x = newPosition.x;
-        y = newPosition.y;
-      }
-    }
+    // for (let j = 0; j < towers.length; j++) {
+    //   while (!isValidNewCoordinate(towers, x, y)) {
+    //     const newPosition = getRandomPositionNearPath(200);
+    //     x = newPosition.x;
+    //     y = newPosition.y;
+    //   }
+    // }
     let towerNum = Math.floor(Math.random() * 3);
     console.log(towerNum);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
-    tower.draw(ctx, towerImage);
+    tower.draw(ctx, towerImages[towerNum]);
     userGold -= towerCost;
   }
+}
+
+function upgradeTowers() {
+  if (userGold >= upgradeCost) {
+    for (let i = 0; i < towers.length; i++) {
+      towers[i].towerLevel += 1;
+    }
+  }
+  userGold -= upgradeCost;
 }
 
 function placeBase() {
@@ -236,7 +251,17 @@ function spawnMonster() {
   }
 }
 
-function gameLoop() {
+function gameLoop(previousTime = null, elapsedTime = null) {
+  if (previousTime === null) {
+    requestAnimationFrame(() => gameLoop(Date.now(), 0.0));
+    return;
+  }
+  const currentTime = Date.now();
+  const deltaTime = currentTime - previousTime;
+  elapsedTime += deltaTime;
+  console.log(
+    `CurrentTime : ${currentTime}\ndeltaTime : ${deltaTime}\nelapsedTime : ${elapsedTime}`,
+  );
   // 렌더링 시에는 항상 배경 이미지부터 그려야 합니다! 그래야 다른 이미지들이 배경 이미지 위에 그려져요!
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // 배경 이미지 다시 그리기
   drawPath(monsterPath); // 경로 다시 그리기
@@ -253,7 +278,7 @@ function gameLoop() {
 
   // 타워 그리기 및 몬스터 공격 처리
   towers.forEach((tower) => {
-    tower.draw(ctx, towerImage);
+    tower.draw(ctx, towerImages[tower.towerNum]);
     tower.updateCooldown();
     monsters.forEach((monster) => {
       const distance = Math.sqrt(
@@ -288,7 +313,14 @@ function gameLoop() {
   //스테이지(monsterLevel) 업데이트
   monsterLevel = Math.floor(score / 50) + 1;
 
-  requestAnimationFrame(gameLoop); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
+  //몬스터 스폰을 프레임단위로 업데이트
+  monsterSpawnInterval -= 1;
+  if (monsterSpawnInterval === 0) {
+    spawnMonster();
+    monsterSpawnInterval += 60;
+  }
+
+  requestAnimationFrame(() => gameLoop(currentTime, elapsedTime)); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
 }
 
 function killMonster(i) {
@@ -306,7 +338,7 @@ function initGame() {
   placeInitialTowers(); // 설정된 초기 타워 개수만큼 사전에 타워 배치
   placeBase(); // 기지 배치
 
-  setInterval(spawnMonster, monsterSpawnInterval); // 설정된 몬스터 생성 주기마다 몬스터 생성
+  //setInterval(spawnMonster, monsterSpawnInterval); // 설정된 몬스터 생성 주기마다 몬스터 생성
   gameLoop(); // 게임 루프 최초 실행
   isInitGame = true;
 }
@@ -314,27 +346,11 @@ function initGame() {
 // 이미지 로딩 완료 후 서버와 연결하고 게임 초기화
 Promise.all([
   new Promise((resolve) => (backgroundImage.onload = resolve)),
-  new Promise((resolve) => (towerImage.onload = resolve)),
+  ...towerImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
   new Promise((resolve) => (baseImage.onload = resolve)),
   new Promise((resolve) => (pathImage.onload = resolve)),
   ...monsterImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
 ]).then(() => {
-  /* 서버 접속 코드 (여기도 완성해주세요!) */
-  let somewhere;
-  serverSocket = io('localhost:3000', {
-    auth: {
-      token: somewhere, // 토큰이 저장된 어딘가에서 가져와야 합니다!
-    },
-  });
-
-  /* 
-    서버의 이벤트들을 받는 코드들은 여기다가 쭉 작성해주시면 됩니다! 
-    e.g. serverSocket.on("...", () => {...});
-    이 때, 상태 동기화 이벤트의 경우에 아래의 코드를 마지막에 넣어주세요! 최초의 상태 동기화 이후에 게임을 초기화해야 하기 때문입니다! 
-    if (!isInitGame) {
-      initGame();
-    }
-  */
   initGame();
 });
 
@@ -350,3 +366,16 @@ buyTowerButton.style.cursor = 'pointer';
 buyTowerButton.addEventListener('click', placeNewTower);
 
 document.body.appendChild(buyTowerButton);
+
+const upgradeTowerButton = document.createElement('button');
+upgradeTowerButton.textContent = '타워 업그레이드';
+upgradeTowerButton.style.position = 'absolute';
+upgradeTowerButton.style.top = '10px';
+upgradeTowerButton.style.right = '140px';
+upgradeTowerButton.style.padding = '10px 20px';
+upgradeTowerButton.style.fontSize = '16px';
+upgradeTowerButton.style.cursor = 'pointer';
+
+upgradeTowerButton.addEventListener('click', upgradeTowers);
+
+document.body.appendChild(upgradeTowerButton);

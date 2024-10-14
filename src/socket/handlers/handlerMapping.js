@@ -1,4 +1,4 @@
-import { monsterSpawnHandler } from '../handlers/monster.handler.js';
+import { monsterSpawnHandler } from './monster.handler.js';
 
 const ping = async (user, payload) => {
   return {
