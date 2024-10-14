@@ -8,15 +8,23 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DB_URL")
 }
 
+model Monster {
+  id                  Int                   @id @default(autoincrement())
+  damage              Int
+  hp                  Int
+  weight              Int
+  PlayerMonsterStatus PlayerMonsterStatus[]
+}
+
 model Player {
-  id                    Int                   @id @default(autoincrement())
-  email                 String                @unique @db.VarChar(255)
-  password              String                @db.VarChar(255)
-  name                  String                @db.VarChar(255)
-  highScore             Int                   @default(0)
-  PlayerMonsterStatuses PlayerMonsterStatus[]
-  PlayerProgresses      PlayerProgress[]
-  PlayerTowers          PlayerTower[]
+  id                  Int                   @id @default(autoincrement())
+  email               String                @unique @db.VarChar(255)
+  password            String                @db.VarChar(255)
+  name                String                @db.VarChar(255)
+  highScore           Int                   @default(0)
+  PlayerMonsterStatus PlayerMonsterStatus[]
+  PlayerProgress      PlayerProgress[]
+  PlayerTower         PlayerTower[]
 }
 
 model PlayerMonsterStatus {
@@ -29,8 +37,26 @@ model PlayerMonsterStatus {
   Monster          Monster @relation(fields: [monsterId], references: [id], onDelete: Cascade)
   Player           Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
-  @@index([playerId])
   @@index([monsterId])
+  @@index([playerId])
+}
+
+model PlayerProgress {
+  id               Int              @id @default(autoincrement())
+  playerId         Int
+  currentStageId   Int
+  gold             Int
+  score            Int
+  currentHQId      Int
+  currentHQHp      Int
+  lastUpdate       DateTime
+  SpartaHeadQuater SpartaHeadQuater @relation(fields: [currentHQId], references: [id], onDelete: Cascade)
+  Stage            Stage            @relation(fields: [currentStageId], references: [id], onDelete: Cascade)
+  Player           Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([currentHQId], map: "PlayerProgress_currentHQId_fkey")
+  @@index([currentStageId])
+  @@index([playerId])
 }
 
 model PlayerTower {
@@ -47,30 +73,17 @@ model PlayerTower {
   @@index([towerId])
 }
 
-model PlayerProgress {
-  id               Int              @id @default(autoincrement())
-  playerId         Int
-  currentStageId   Int
-  gold             Int
-  score            Int
-  currentHQId      Int
-  currentHQHp      Int
-  lastUpdate       DateTime
-  SpartaHeadQuater SpartaHeadQuater @relation(fields: [currentHQId], references: [id], onDelete: Cascade)
-  Stage            Stage            @relation(fields: [currentStageId], references: [id], onDelete: Cascade)
-  Player           Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
-
-  @@index([playerId])
-  @@index([currentStageId])
-  @@index([currentHQId], map: "PlayerProgress_currentHQId_fkey")
+model SpartaHeadQuater {
+  id             Int              @id @default(autoincrement())
+  maxHp          Int
+  PlayerProgress PlayerProgress[]
 }
 
-model Monster {
-  id                    Int                   @id @default(autoincrement())
-  damage                Int
-  hp                    Int
-  weight                Int
-  PlayerMonsterStatuses PlayerMonsterStatus[]
+model Stage {
+  id               Int              @id @default(autoincrement())
+  monsterCount     Int
+  monsterTypeRange Int
+  PlayerProgress   PlayerProgress[]
 }
 
 model Tower {
@@ -78,18 +91,5 @@ model Tower {
   attackCooltime BigInt
   damage         Int
   damageRange    Int
-  PlayerTowers   PlayerTower[]
-}
-
-model Stage {
-  id               Int              @id @default(autoincrement())
-  monsterCount     Int
-  monsterTypeRange Int
-  PlayerProgresses PlayerProgress[]
-}
-
-model SpartaHeadQuater {
-  id               Int              @id @default(autoincrement())
-  maxHp            Int
-  PlayerProgresses PlayerProgress[]
+  PlayerTower    PlayerTower[]
 }

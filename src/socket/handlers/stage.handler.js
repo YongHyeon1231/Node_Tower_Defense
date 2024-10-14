@@ -1,4 +1,4 @@
-import { getStage, setStage } from '../../models/stage.model.js';
+import { getStage, setStage } from './../model/stage.model.js';
 import { getGameAssets } from '../../init/assets.js';
 
 export const moveStageHandler = (uuid, payload) => {
