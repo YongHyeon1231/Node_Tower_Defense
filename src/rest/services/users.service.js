@@ -3,7 +3,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import flattenedConfig from '../../libs/env.js';
 
-import { createPlayer, findPlayerByEmail } from '../repositories/users.repository.js';
+import {
+  createPlayer,
+  findPlayerByEmail,
+  updatePlayerNameById,
+} from '../repositories/users.repository.js';
 
 const { JWT_SECRET, JWT_EXPIRES_IN, JWT_ALGORITHM, JWT_AUDIENCE, JWT_ISSUER } = flattenedConfig;
 
@@ -61,4 +65,13 @@ export const signIn = async ({ email, password }) => {
   } catch (error) {
     throw error;
   }
+};
+
+export const changeName = async ({ id, targetName }) => {
+  await updatePlayerNameById(id, targetName);
+
+  return {
+    message: '이름 변경 성공',
+    name: targetName,
+  };
 };

@@ -13,3 +13,12 @@ export const createPlayer = async (name, email, password) => {
 export const findPlayerByEmail = async (email) => {
   return await prisma.player.findUnique({ where: { email } });
 };
+
+export const updatePlayerNameById = async (id, targetName) => {
+  return await prisma.player.update({
+    where: { id },
+    data: {
+      name: targetName,
+    },
+  });
+};

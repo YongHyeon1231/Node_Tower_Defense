@@ -16,6 +16,10 @@ const signInSchema = Joi.object({
   password: Joi.string().min(6).max(20).required(),
 });
 
+const nameSchema = Joi.object({
+  targetName: Joi.string().min(2).max(10).required(),
+});
+
 const userValidationErrorHandler = function (req, res) {
   console.log(req.origianlUrl, 'User Validation 실패');
   let msg = '모두 소문자 그리고 숫자';
@@ -26,7 +30,7 @@ const userValidatorJoi = {
   signUpValidation: async function (req, res, next) {
     try {
       console.log('test => ', req.body);
-      const validation = await signUpSchema.validateAsync(req.body);
+      await signUpSchema.validateAsync(req.body);
       next();
     } catch (error) {
       return next(new ApiError(error, 400));
@@ -34,10 +38,18 @@ const userValidatorJoi = {
   },
   signInValidation: async function (req, res, next) {
     try {
-      const validation = await signInSchema.validateAsync(req.body);
+      await signInSchema.validateAsync(req.body);
       next();
     } catch (error) {
-      return enxt(new ApiError(error, 400));
+      return next(new ApiError(error, 400));
+    }
+  },
+  nameValidation: async function (req, res, next) {
+    try {
+      await nameSchema.validateAsync(req.body);
+      next();
+    } catch (error) {
+      return next(new ApiError(error, 400));
     }
   },
 };
