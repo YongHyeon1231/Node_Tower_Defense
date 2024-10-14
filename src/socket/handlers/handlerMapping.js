@@ -1,5 +1,6 @@
-const ping = async (uuid, payload) => {
+const ping = async (user, payload) => {
   return {
+    status: 'success',
     message: `Pong! ${payload.ping}`,
   };
 };

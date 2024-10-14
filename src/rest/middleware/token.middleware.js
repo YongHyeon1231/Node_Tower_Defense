@@ -8,9 +8,7 @@ import { findPlayerByEmail } from '../repositories/users.repository.js';
 
 export const tokenVerify = async (req, res, next) => {
   let token = req.headers['authorization'];
-  console.log('token => ', token);
   token = token && token.split(' ')[1];
-  console.log('token => ', token);
 
   if (token) {
     try {
@@ -24,7 +22,6 @@ export const tokenVerify = async (req, res, next) => {
 
       // 데이터 값 저장
       req.user = user;
-      console.log('tokenVerify user=> ', user);
     } catch (error) {
       logger.warn(`Token verification or user fetch error: ${error.message}`);
       // 인증이 필요 없는 경우 여기서 에러를 반환하지 않고 다음으로 넘어감

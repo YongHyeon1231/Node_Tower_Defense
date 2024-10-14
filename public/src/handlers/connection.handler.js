@@ -1,28 +1,28 @@
 import { setLocalStorage, getLocalStorage } from '../LocalStorage.js';
-import { setGameData } from '../index.js'
+import { setGameData } from '../index.js';
 
 export const connectHandler = (data) => {
-  setLocalStorage('UUID', data.uuid);
-  console.log("핸들러에 들어온 데이터 : ",data);
+  console.log(`서버와 연결됨 : \n`, data);
   setGameData(data);
-  // GameManager.setUUID(data.uuid);
-  // GameManager.setHighDistance(data.user.highDistance);
-  // GameManager.setHighScore(data.user.highScore);
-  // GameManager.setState(states.connected);
-  // GameManager.setStages(data.stages);
-  // GameManager.setItemUnlocks(data.itemUnlocks);
-  // GameManager.setItems(data.items);
-  // GameManager.setRankUser(data.rankUser);
 };
 
 export const disconnectHandler = (data) => {
-  //const states = GameManager.getStates();
-  // GameManager.setUUID(null);
-  // GameManager.setState(states.disconnect);
+  console.log('서버와 연결 끊김 : \n', data);
+  location.reload();
 };
 
 export const versionMismatchHandler = (data) => {
-  //const states = GameManager.getStates();
-  // GameManager.setUUID(null);
-  // GameManager.setState(states.version_mismatch);
+  console.error('버전이 맞지 않음 : ', data);
+};
+
+export const requiredUUIDHandler = (data) => {
+  console.error('UUID가 없다 함 : ', data);
+};
+
+export const invalidTokenHandler = (data) => {
+  console.error('토큰 인증 실패함 : ', data);
+};
+
+export const handlerNotFoundHandler = (data) => {
+  console.error('요청한 이벤트는 존재하지 않음 : ', data);
 };

@@ -11,7 +11,7 @@ export const connect = () => {
   socket = io(socketUrl, {
     query: {
       clientVersion: CLIENT_VERSION,
-      uuid: getLocalStorage('UUID'),
+      uuid: getLocalStorage('token'),
     },
   });
 

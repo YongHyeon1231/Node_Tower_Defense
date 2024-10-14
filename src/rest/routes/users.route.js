@@ -1,4 +1,4 @@
-import { signUp, signIn, changeName } from '../services/users.service.js';
+import { signUp, signIn, changeName, validToken } from '../services/users.service.js';
 import userValidatorJoi from '../middleware/validators/userValidator.middleware.js';
 
 const allRoutes = [
@@ -22,6 +22,12 @@ const allRoutes = [
     action: changeName,
     authRequired: true,
     validator: userValidatorJoi.nameValidation,
+  },
+  {
+    url: '/validToken',
+    method: 'post',
+    action: validToken,
+    authRequired: true,
   },
 ];
 
