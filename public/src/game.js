@@ -231,7 +231,7 @@ function placeNewTower() {
 
 function upgradeTowers() {
   if (userGold >= upgradeCost) {
-    for(let i = 0 ; i < towers.length ; i++){
+    for (let i = 0; i < towers.length; i++) {
       towers[i].towerLevel += 1;
     }
   }
@@ -251,7 +251,17 @@ function spawnMonster() {
   }
 }
 
-function gameLoop() {
+function gameLoop(previousTime = null, elapsedTime = null) {
+  if (previousTime === null) {
+    requestAnimationFrame(() => gameLoop(Date.now(), 0.0));
+    return;
+  }
+  const currentTime = Date.now();
+  const deltaTime = currentTime - previousTime;
+  elapsedTime += deltaTime;
+  console.log(
+    `CurrentTime : ${currentTime}\ndeltaTime : ${deltaTime}\nelapsedTime : ${elapsedTime}`,
+  );
   // 렌더링 시에는 항상 배경 이미지부터 그려야 합니다! 그래야 다른 이미지들이 배경 이미지 위에 그려져요!
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // 배경 이미지 다시 그리기
   drawPath(monsterPath); // 경로 다시 그리기
@@ -303,7 +313,7 @@ function gameLoop() {
   //스테이지(monsterLevel) 업데이트
   monsterLevel = Math.floor(score / 50) + 1;
 
-  requestAnimationFrame(gameLoop); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
+  requestAnimationFrame(() => gameLoop(currentTime, elapsedTime)); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
 }
 
 function killMonster(i) {
