@@ -2,16 +2,15 @@ import { getGameAssets } from '../../init/assets.js';
 import handlerMappings from './handlerMapping.js';
 import logger from '../../libs/logger.js';
 
-export const handleDisconnect = async (socket, uuid) => {
-  logger.info(`User disconnected : ${uuid}`);
+export const handleDisconnect = async (socket, user) => {
+  logger.info(`User disconnected : `, user);
 };
 
-export const handleConnection = async (socket, uuid) => {
-  logger.info(`New user connected : ${uuid} with socket ID: ${socket.id}`);
+export const handleConnection = async (socket, user) => {
+  logger.info(`New user connected : ${user.id} with socket ID: ${socket.id}`);
   const { monsters, spartaHeadQuaters, stages, towers } = getGameAssets();
 
   socket.emit('connection', {
-    uuid,
     monsters: monsters.data,
     spartaHeadQuaters: spartaHeadQuaters.data,
     stages: stages.data,
@@ -22,11 +21,14 @@ export const handleConnection = async (socket, uuid) => {
 export const handlerEvent = async (io, socket, data) => {
   const handler = handlerMappings[data.handlerId];
   if (!handler) {
-    socket.emit('response', { status: 'fail', message: 'Handler not found' });
+    socket.emit('response', {
+      status: 'handler_not_found',
+      message: `Handler not found[${data?.handlerId}]`,
+    });
     return;
   }
 
-  const response = await handler(data.userId, data.payload);
+  const response = await handler(data.user, data.payload);
 
   const broadcast = response.broadcast;
   response.broadcast = undefined;
@@ -34,7 +36,9 @@ export const handlerEvent = async (io, socket, data) => {
   const event = response.event || 'response';
   response.event = undefined;
 
-  io.emit(broadcast.event, broadcast.data);
+  if (broadcast) {
+    io.emit(broadcast.event, broadcast.data);
+  }
   socket.emit(event, response);
   //핸들링 결과 로그 출력
   logger.info(`handler. br[${broadcast}] ${event} - ${JSON.stringify(response)}`);
