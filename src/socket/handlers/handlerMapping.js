@@ -5,6 +5,7 @@ const ping = async (uuid, payload) => {
 };
 const handlerMappings = {
   999: ping,
+  21: monsterSpawnHandler,
 };
 
 export default handlerMappings;
