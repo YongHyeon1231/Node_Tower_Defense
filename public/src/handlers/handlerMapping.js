@@ -5,10 +5,6 @@ const handlers = [
     event: 'connection',
     action: connectHandler,
   },
-  //   {
-  //     event: 'disconnect',
-  //     action: disconnectHandler,
-  //   },
   {
     event: 'version_mismatch',
     action: versionMismatchHandler,

@@ -1,0 +1,11 @@
+{
+  "name": "spartaHeadQuater",
+  "version": "1.0.0",
+  "data": [
+    { "id": 10001, "maxHp": 1000 },
+    { "id": 10002, "maxHp": 1500 },
+    { "id": 10003, "maxHp": 2000 },
+    { "id": 10004, "maxHp": 2500 },
+    { "id": 10005, "maxHp": 3000 }
+  ]
+}
