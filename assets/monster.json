@@ -1,0 +1,11 @@
+{
+  "name": "monster",
+  "version": "1.0.0",
+  "data": [
+    { "id": 13001, "damage": 5, "hp": 100, "weight": 100 },
+    { "id": 13002, "damage": 10, "hp": 150, "weight": 80 },
+    { "id": 13003, "damage": 15, "hp": 200, "weight": 60 },
+    { "id": 13004, "damage": 20, "hp": 250, "weight": 40 },
+    { "id": 13005, "damage": 25, "hp": 300, "weight": 20 }
+  ]
+}

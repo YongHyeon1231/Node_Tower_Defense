@@ -8,13 +8,14 @@ export const handleDisconnect = async (socket, uuid) => {
 
 export const handleConnection = async (socket, uuid) => {
   logger.info(`New user connected : ${uuid} with socket ID: ${socket.id}`);
-  const { stages, items, itemUnlocks } = getGameAssets();
+  const { monsters, spartaHeadQuaters, stages, towers } = getGameAssets();
 
   socket.emit('connection', {
     uuid,
+    monsters: monsters.data,
+    spartaHeadQuaters: spartaHeadQuaters.data,
     stages: stages.data,
-    items: items.data,
-    itemUnlocks: itemUnlocks.data,
+    towers: towers.data,
   });
 };
 

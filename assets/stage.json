@@ -2,12 +2,11 @@
   "name": "stage",
   "version": "1.0.0",
   "data": [
-    { "id":  1000, "elapsed": 30 , "seed" : 1234, "gameSpeed" : 1.0},
-    { "id":  1001, "elapsed": 35, "seed" : 1587, "gameSpeed" : 1.1 },
-    { "id":  1002, "elapsed": 40 , "seed" : 1987, "gameSpeed" : 1.2},
-    { "id":  1003, "elapsed": 45, "seed" : 2103,"gameSpeed" : 1.3 },
-    { "id":  1004, "elapsed": 60,"seed" : 2693,"gameSpeed" : 1.4 },
-    { "id":  1005, "elapsed": 75 , "seed" : 2901,"gameSpeed" : 1.5},
-    { "id":  1006, "elapsed": 999999999999 , "seed": 3012, "gameSpeed" : 2.0}
+    { "id": 12001, "monsterCount": 20, "monsterTypeRange": 1 },
+    { "id": 12002, "monsterCount": 25, "monsterTypeRange": 2 },
+    { "id": 12003, "monsterCount": 30, "monsterTypeRange": 3 },
+    { "id": 12004, "monsterCount": 35, "monsterTypeRange": 4 },
+    { "id": 12005, "monsterCount": 40, "monsterTypeRange": 5 },
+    { "id": 12006, "monsterCount": 45, "monsterTypeRange": 6 }
   ]
 }

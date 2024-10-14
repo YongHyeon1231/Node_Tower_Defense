@@ -22,13 +22,14 @@ let gameAssets = {};
 
 export const loadGameAssets = async () => {
   try {
-    const [stages, items, itemUnlocks] = await Promise.all([
+    const [monsters, spartaHeadQuaters, stages, towers] = await Promise.all([
+      readFileAsync('monster.json'),
+      readFileAsync('spartaHeadQuater.json'),
       readFileAsync('stage.json'),
-      readFileAsync('item.json'),
-      readFileAsync('item_unlock.json'),
+      readFileAsync('tower.json'),
     ]);
 
-    gameAssets = { stages, items, itemUnlocks };
+    gameAssets = { monsters, spartaHeadQuaters, stages, towers };
     return gameAssets;
   } catch (error) {
     throw error;
