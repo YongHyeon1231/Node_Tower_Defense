@@ -1,125 +1,91 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="author" content="Changmin Kang" />
-    <title>내일배움캠프 Node.js 트랙 타워 디펜스 게임</title>
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
-    <style>
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        background-color: #2d2d2d;
-        color: white;
-        font-family: Arial, sans-serif;
-      }
-      .form-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .form-container input {
-        margin: 10px;
-        padding: 10px;
-        font-size: 16px;
-      }
-      .form-container button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      .modal {
-        padding-left: 10px;
-        padding-right: 10px;
-        opacity: 0;
-        position: absolute;
-        top: 10%;
-        width: auto;
-        height: 80px;
-        font-size: 25px;
-        background-color: white;
-        border-radius: 10px;
-        border: 1px solid black;
-        box-shadow: 3px 3px 10px black;
-        transition: opacity 1s ease;
-        color: black;
-      }
-      .modal.show {
-        opacity: 1; /* 모달이 나타날 때 opacity를 1로 설정하여 보이게 함 */
-      }
-      .modal-content {
-        height: 100%;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="modal" class="modal">
-      <div class="modal-content">
-        <p class="message">메시지 내용</p>
-      </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Changmin Kang" />
+  <title>내일배움캠프 Node.js 트랙 타워 디펜스 게임</title>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #2d2d2d;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .form-container input {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .form-container button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .modal {
+      padding-left: 10px;
+      padding-right: 10px;
+      opacity: 0;
+      position: absolute;
+      top: 10%;
+      width: auto;
+      height: 80px;
+      font-size: 25px;
+      background-color: white;
+      border-radius: 10px;
+      border: 1px solid black;
+      box-shadow: 3px 3px 10px black;
+      transition: opacity 1s ease;
+      color: black;
+    }
+
+    .modal.show {
+      opacity: 1;
+      /* 모달이 나타날 때 opacity를 1로 설정하여 보이게 함 */
+    }
+
+    .modal-content {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <p class="message">메시지 내용</p>
     </div>
-    <div class="form-container">
-      <h1>내일배움캠프 Node.js 트랙 타워 디펜스 게임</h1>
-      <h2>로그인</h2>
-      <input type="text" id="email" placeholder="아이디" />
-      <input type="password" id="password" placeholder="비밀번호" />
-      <button id="login">로그인</button>
-      <button id="back">뒤로가기</button>
-    </div>
-    <script>
-      document.getElementById('login').addEventListener('click', async () => {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+  </div>
+  <div class="form-container">
+    <h1>내일배움캠프 Node.js 트랙 타워 디펜스 게임</h1>
+    <h2>로그인</h2>
+    <input type="text" id="email" placeholder="아이디" />
+    <input type="password" id="password" placeholder="비밀번호" />
+    <button id="login">로그인</button>
+    <button id="back">뒤로가기</button>
+  </div>
+  <script src="./src/login.js" type="module"></script>
 
-        /*
-          로그인 API 호출 후 로그인 성공 시 index.html로 이동시켜주세요!
-          이 때, 엑세스 토큰은 어딘가에 저장을 해놔야겠죠?!
-        */
-        try {
-          // 서버로 로그인 요청을 보내주자
-          const response = await fetch('/signIn', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-          });
-          const data = await response.json();
+</body>
 
-          if (!response.ok) {
-            throw new Error(data.errorMessage || '로그인 실패');
-          } else {
-            //토큰 확인해야하는거
-          }
-          popUpAlert(data.message);
-          setTimeout(() => {
-            window.location.href = 'index.html';
-          }, 1000);
-        } catch (error) {}
-      });
-
-      document.getElementById('back').addEventListener('click', () => {
-        window.location.href = 'index.html';
-      });
-
-      const modal = document.querySelector('.modal');
-      const popUpAlert = (message) => {
-        const messageElement = document.querySelector('.message');
-        messageElement.textContent = message;
-        modal.classList.add('show');
-        setTimeout(() => {
-          modal.classList.remove('show');
-        }, 2000);
-      };
-    </script>
-  </body>
 </html>

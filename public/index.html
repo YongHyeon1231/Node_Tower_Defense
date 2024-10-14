@@ -51,6 +51,7 @@
     }
   </style>
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  <script src="./src/index.js" type="module"></script>
 </head>
 
 <body>
@@ -61,29 +62,10 @@
   </div>
   <div class="button-container">
     <h1 style="color: white">내일배움캠프 Node.js 트랙 타워 디펜스 게임</h1>
-    <button id="registerButton">회원가입</button>
-    <button id="loginButton">로그인</button>
-    <button id="playButton">게임 플레이</button>
   </div>
   <canvas id="gameCanvas" width="1920" height="1080"></canvas>
-  <script type="module">
-    document
-      .getElementById("registerButton")
-      .addEventListener("click", () => {
-        window.location.href = "register.html";
-      });
 
-    document.getElementById("loginButton").addEventListener("click", () => {
-      window.location.href = "login.html";
-    });
 
-    document.getElementById("playButton").addEventListener("click", () => {
-      document.querySelector(".button-container").style.display = "none";
-      document.getElementById("gameCanvas").style.display = "block";
-      import("./src/game.js");
-    });
-  </script>
-  <script src="./src/index.js" type="module"></script>
 </body>
 
 </html>

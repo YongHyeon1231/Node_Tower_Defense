@@ -29,7 +29,6 @@ const userValidationErrorHandler = function (req, res) {
 const userValidatorJoi = {
   signUpValidation: async function (req, res, next) {
     try {
-      console.log('test => ', req.body);
       await signUpSchema.validateAsync(req.body);
       next();
     } catch (error) {

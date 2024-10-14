@@ -67,6 +67,12 @@ export const signIn = async ({ email, password }) => {
   }
 };
 
+export const validToken = async ({ id }) => {
+  if (!id) {
+    throw new ApiError('expired or invalid token', 401);
+  }
+};
+
 export const changeName = async ({ id, targetName }) => {
   await updatePlayerNameById(id, targetName);
 
