@@ -41,7 +41,7 @@ let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
-let monsterSpawnInterval = 1000; // 몬스터 생성 주기
+let monsterSpawnInterval = 60; // 몬스터 생성 주기, 현재는 60프레임, 원래는 1000ms
 const monsters = [];
 const towers = [];
 
@@ -303,6 +303,13 @@ function gameLoop() {
   //스테이지(monsterLevel) 업데이트
   monsterLevel = Math.floor(score / 50) + 1;
 
+  //몬스터 스폰을 프레임단위로 업데이트
+  monsterSpawnInterval -= 1;
+  if(monsterSpawnInterval === 0){
+    spawnMonster();
+    monsterSpawnInterval += 60;
+  }
+
   requestAnimationFrame(gameLoop); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
 }
 
@@ -321,7 +328,7 @@ function initGame() {
   placeInitialTowers(); // 설정된 초기 타워 개수만큼 사전에 타워 배치
   placeBase(); // 기지 배치
 
-  setInterval(spawnMonster, monsterSpawnInterval); // 설정된 몬스터 생성 주기마다 몬스터 생성
+  //setInterval(spawnMonster, monsterSpawnInterval); // 설정된 몬스터 생성 주기마다 몬스터 생성
   gameLoop(); // 게임 루프 최초 실행
   isInitGame = true;
 }
