@@ -4,7 +4,7 @@ let gameData = [];
 
 export const setGameData = (data) => {
   gameData = data;
-  console.log("인덱스에서 세팅된 게임 데이터 : ",gameData.towers)
+  console.log("인덱스에서 세팅된 게임 데이터 : ",gameData.towers[2].damage)
 };
 
 export const getGameData = () => {

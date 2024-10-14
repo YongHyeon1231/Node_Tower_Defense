@@ -149,7 +149,9 @@ function placeInitialTowers() {
   // numOfInitialTowers를 플레이어에서 받아와서 생성
   for (let i = 0; i < numOfInitialTowers; i++) {
     const { x, y } = getRandomPositionNearPath(200);
-    const tower = new Tower(x, y, towerCost);
+    let towerNum = Math.floor(Math.random() * 3);
+    console.log(towerNum);
+    const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImage);
   }
@@ -162,7 +164,9 @@ function placeNewTower() {
   */
   if (userGold >= towerCost) {
     const { x, y } = getRandomPositionNearPath(200);
-    const tower = new Tower(x, y);
+    let towerNum = Math.floor(Math.random() * 3);
+    console.log(towerNum);
+    const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImage);
     userGold -= towerCost;

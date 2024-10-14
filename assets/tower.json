@@ -2,8 +2,8 @@
   "name": "tower",
   "version": "1.0.0",
   "data": [
-    { "id": 11001, "attackColltime": 120, "damage": 10, "damageRange": 300 },
-    { "id": 11002, "attackColltime": 120, "damage": 20, "damageRange": 400 },
-    { "id": 11003, "attackColltime": 120, "damage": 30, "damageRange": 500 }
+    { "id": 11001, "attackCooltime": 120, "damage": 50, "damageRange": 300 },
+    { "id": 11002, "attackCooltime": 120, "damage": 100, "damageRange": 400 },
+    { "id": 11003, "attackCooltime": 120, "damage": 150, "damageRange": 500 }
   ]
 }
