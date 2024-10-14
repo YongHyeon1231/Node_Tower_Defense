@@ -13,12 +13,13 @@ const ctx = canvas.getContext('2d');
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 const NUM_OF_TOWERS = 3; // 몬스터 개수
 
-let userGold = 0; // 유저 골드
+let userGold = 10000; // 유저 골드
 let base; // 기지 객체
 // 플레이어의 기지 체력
 let baseHp = 1000; // 기지 체력
 
 let towerCost = 100; // 타워 구입 비용
+let upgradeCost = 1000;
 let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
@@ -174,13 +175,13 @@ function placeInitialTowers() {
   // numOfInitialTowers를 플레이어에서 받아와서 생성
   for (let i = 0; i < numOfInitialTowers; i++) {
     let { x, y } = getRandomPositionNearPath(200);
-    for (let j = 0; j < towers.length; j++) {
-      while (!isValidNewCoordinate(towers, x, y)) {
-        const newPosition = getRandomPositionNearPath(200);
-        x = newPosition.x;
-        y = newPosition.y;
-      }
-    }
+    // for (let j = 0; j < towers.length; j++) {
+    //   while (!isValidNewCoordinate(towers, x, y)) {
+    //     const newPosition = getRandomPositionNearPath(200);
+    //     x = newPosition.x;
+    //     y = newPosition.y;
+    //   }
+    // }
     let towerNum = Math.floor(Math.random() * 3);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
@@ -195,13 +196,13 @@ function placeNewTower() {
   */
   if (userGold >= towerCost && towers.length < maxTowerNum) {
     let { x, y } = getRandomPositionNearPath(200);
-    for (let j = 0; j < towers.length; j++) {
-      while (!isValidNewCoordinate(towers, x, y)) {
-        const newPosition = getRandomPositionNearPath(200);
-        x = newPosition.x;
-        y = newPosition.y;
-      }
-    }
+    // for (let j = 0; j < towers.length; j++) {
+    //   while (!isValidNewCoordinate(towers, x, y)) {
+    //     const newPosition = getRandomPositionNearPath(200);
+    //     x = newPosition.x;
+    //     y = newPosition.y;
+    //   }
+    // }
     let towerNum = Math.floor(Math.random() * 3);
     console.log(towerNum);
     const tower = new Tower(x, y, towerCost, towerNum);
@@ -209,6 +210,15 @@ function placeNewTower() {
     tower.draw(ctx, towerImages[towerNum]);
     userGold -= towerCost;
   }
+}
+
+function upgradeTowers() {
+  if (userGold >= upgradeCost) {
+    for(let i = 0 ; i < towers.length ; i++){
+      towers[i].towerLevel += 1;
+    }
+  }
+  userGold -= upgradeCost;
 }
 
 function placeBase() {
@@ -322,3 +332,16 @@ buyTowerButton.style.cursor = 'pointer';
 buyTowerButton.addEventListener('click', placeNewTower);
 
 document.body.appendChild(buyTowerButton);
+
+const upgradeTowerButton = document.createElement('button');
+upgradeTowerButton.textContent = '타워 업그레이드';
+upgradeTowerButton.style.position = 'absolute';
+upgradeTowerButton.style.top = '10px';
+upgradeTowerButton.style.right = '140px';
+upgradeTowerButton.style.padding = '10px 20px';
+upgradeTowerButton.style.fontSize = '16px';
+upgradeTowerButton.style.cursor = 'pointer';
+
+upgradeTowerButton.addEventListener('click', upgradeTowers);
+
+document.body.appendChild(upgradeTowerButton);
