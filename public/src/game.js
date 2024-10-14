@@ -18,7 +18,8 @@ let base; // 기지 객체
 let baseHp = 1000; // 기지 체력
 
 let towerCost = 100; // 타워 구입 비용
-let numOfInitialTowers = 3; // 초기 타워 개수
+let numOfInitialTowers = 5; // 초기 타워 개수
+let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
 let monsterSpawnInterval = 1000; // 몬스터 생성 주기
@@ -141,6 +142,25 @@ function getRandomPositionNearPath(maxDistance) {
   };
 }
 
+function isValidNewCoordinate(towers, x, y) {
+  const newX = x;
+  const newY = y;
+
+  for (let j = 0; j < towers.length; j++) {
+    const towerX = towers[j].x;
+    const towerY = towers[j].y;
+
+    const xDistance = Math.abs(newX - towerX);
+    const yDistance = Math.abs(newY - towerY);
+
+    // x 방향으로 20 이상, y 방향으로 40 이상 떨어져 있는지 확인
+    if (xDistance < 5 || yDistance < 10) {
+      return false; // 거리가 충분히 떨어져 있지 않음
+    }
+  }
+  return true; // 모든 기존 타워와 충분히 떨어져 있음
+}
+
 function placeInitialTowers() {
   /* 
     타워를 초기에 배치하는 함수입니다.
@@ -148,9 +168,15 @@ function placeInitialTowers() {
   */
   // numOfInitialTowers를 플레이어에서 받아와서 생성
   for (let i = 0; i < numOfInitialTowers; i++) {
-    const { x, y } = getRandomPositionNearPath(200);
+    let { x, y } = getRandomPositionNearPath(200);
+    for (let j = 0; j < towers.length; j++) {
+      while (!isValidNewCoordinate(towers, x, y)) {
+        const newPosition = getRandomPositionNearPath(200);
+        x = newPosition.x;
+        y = newPosition.y;
+      }
+    }
     let towerNum = Math.floor(Math.random() * 3);
-    console.log(towerNum);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImage);
@@ -162,8 +188,15 @@ function placeNewTower() {
     타워를 구입할 수 있는 자원이 있을 때 타워 구입 후 랜덤 배치하면 됩니다.
     빠진 코드들을 채워넣어주세요! 
   */
-  if (userGold >= towerCost) {
-    const { x, y } = getRandomPositionNearPath(200);
+  if (userGold >= towerCost && towers.length < maxTowerNum) {
+    let { x, y } = getRandomPositionNearPath(200);
+    for (let j = 0; j < towers.length; j++) {
+      while (!isValidNewCoordinate(towers, x, y)) {
+        const newPosition = getRandomPositionNearPath(200);
+        x = newPosition.x;
+        y = newPosition.y;
+      }
+    }
     let towerNum = Math.floor(Math.random() * 3);
     console.log(towerNum);
     const tower = new Tower(x, y, towerCost, towerNum);
