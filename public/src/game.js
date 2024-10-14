@@ -5,6 +5,23 @@ import { Tower } from './tower.js';
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
 */
+// 이전 스테이지 저장
+let prevStage = 12001;
+export const setPrevStage = (changeStage) => {
+  prevStage = changeStage;
+};
+export const getPrevStage = () => {
+  return prevStage;
+};
+
+// 현재 스테이지 저장
+let currentStage = 12001;
+export const setCurrentStage = (changeStage) => {
+  currentStage = changeStage;
+};
+export const getCurrentStage = () => {
+  return currentStage;
+};
 
 let serverSocket; // 서버 웹소켓 객체
 const canvas = document.getElementById('gameCanvas');

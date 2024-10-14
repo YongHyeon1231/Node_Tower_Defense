@@ -31,6 +31,10 @@ export const sendEvent = (handlerId, payload) => {
   });
 };
 
+export const requestSpawnMonster = () => {
+  sendEvent(21, {});
+};
+
 export const requestGameStart = () => {
   // const states = GameManager.getStates();
   // GameManager.setState(states.stage_request);
