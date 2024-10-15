@@ -7,6 +7,6 @@
     { "id": 13003, "damage": 15, "hp": 200, "weight": 60,"gold": 60, "scorePerStage": 30  },
     { "id": 13004, "damage": 20, "hp": 250, "weight": 40,"gold": 80, "scorePerStage": 40  },
     { "id": 13005, "damage": 25, "hp": 300, "weight": 20,"gold": 100, "scorePerStage": 50  },
-    { "id": 13101, "damage": 100, "hp": 200, "weight": 0,"gold": 500, "scorePerStage": 0, "chanceOnCount": 10, "chance" : 0.5  }
+    { "id": 13101, "damage": 100, "hp": 200, "weight": 0,"gold": 500, "scorePerStage": 0, "chanceOnCount": 10, "chance" : 0.1  }
   ]
 }

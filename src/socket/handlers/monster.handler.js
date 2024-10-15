@@ -10,7 +10,7 @@ const selectMonster = (monsterData, monsterTypeRange, spawnedMonsterCount) => {
   );
 
   if (validMonsters.length > 0) {
-    const selectedMonster = validMonsters.find((monster) => Math.random() >= monster.chance);
+    const selectedMonster = validMonsters.find((monster) => Math.random() <= monster.chance);
 
     if (selectedMonster) {
       return selectedMonster;

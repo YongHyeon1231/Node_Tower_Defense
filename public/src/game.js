@@ -439,9 +439,6 @@ function gameLoop(previousTime = null, elapsedTime = null) {
     });
   });
 
-  // 몬스터가 공격을 했을 수 있으므로 기지 다시 그리기
-  base.draw(ctx, baseImage);
-
   for (let i = monsters.length - 1; i >= 0; i--) {
     const monster = monsters[i];
     if (monster.alive) {
@@ -454,9 +451,6 @@ function gameLoop(previousTime = null, elapsedTime = null) {
       }
       monster.draw(ctx);
     } else if (!monster.requestedKill) {
-      /* 몬스터가 죽었을 때 */
-      //monsters.splice(i, 1);
-      //점수, 골드 추가
       monster.requestedKill = true;
       requestKillMonster(monster.monsterUUID);
     }
@@ -468,6 +462,8 @@ function gameLoop(previousTime = null, elapsedTime = null) {
     requestSpawnMonster(); //서버에 몬스터 소환 요청
     monsterSpawnInterval += 1000.0;
   }
+
+  base.draw(ctx, baseImage);
 
   ctx.font = '25px Times New Roman';
   ctx.fillStyle = 'skyblue';
