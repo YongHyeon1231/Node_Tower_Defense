@@ -4,7 +4,8 @@ import {
   handlerNotFoundHandler,
   versionMismatchHandler,
 } from './connection.handler.js';
-import { stageSetup, moveStage, gameStartHandler, gameEndHandler } from './game.handler.js';
+import { gameStartHandler, gameEndHandler } from './game.handler.js';
+import { moveStageHandler } from './stage.handler.js';
 const handlers = [
   {
     event: 'connection',
@@ -15,12 +16,8 @@ const handlers = [
     action: versionMismatchHandler,
   },
   {
-    event: 'stageResponse',
-    action: stageSetup,
-  },
-  {
-    event: 'moveStage',
-    action: moveStage,
+    event: 'move_stage',
+    action: moveStageHandler,
   },
   {
     event: 'handler_not_found',
@@ -34,7 +31,10 @@ const handlers = [
     event: 'game_end',
     action: gameEndHandler,
   },
-  { event: 'disconnect', action: disconnectHandler },
+  {
+    event: 'disconnect',
+    action: disconnectHandler,
+  },
 ];
 
 export default handlers;

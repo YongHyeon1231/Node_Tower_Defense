@@ -1,37 +1,53 @@
 import { stageModel } from './../model/stage.model.js';
 import { getGameAssets } from '../../init/assets.js';
+import logger from '../../libs/logger.js';
+import redis from '../../managers/redis.manager.js';
 
-export const moveStageHandler = async (uuid, payload) => {
-  console.log('스테이지 이동 요청');
-  // Redis에서 유저의 현재 스테이지 정보 가져오기
-  let currentStages = await stageModel.getStage(uuid); // 서버가 가지고 있는 유저의 현재 스테이지 정보
-  if (!currentStages.length) {
-    return { status: 'fail', message: 'No stages found for user' };
+export const moveStageHandler = async (user, payload) => {
+  const { id, email, name } = user;
+  let message = undefined;
+  let event = 'move_stage';
+  let status = 'success';
+  let result = undefined;
+  const playerProgressKey = `playerProgress:${id}`;
+
+  try {
+    let playerProgress = await redis.get(playerProgressKey);
+    if (playerProgress) {
+      const { stages } = getGameAssets();
+      let currentStageId = playerProgress.currentStageId;
+
+      let currentStageIndex = stages.data.indexOf((stage) => stage.id == currentStageId);
+      if (currentStageIndex === -1) {
+        status = 'fail';
+        message = `could not found stage : ${currentStageId}`;
+      } else if (stages.data.length <= currentStageIndex + 1) {
+        status = 'fail';
+        message = `reach final stage : ${currentStageIndex}`;
+      } else {
+        currentStageIndex++;
+        result = {
+          nextStage: stages.data[currentStageIndex].id,
+        };
+        playerProgress.currentStageId = result.nextStage;
+        playerProgress.lastUpdate = Date.now();
+        await redis.set(playerProgressKey, playerProgress);
+      }
+    } else {
+      status = 'fail';
+      message = 'you need game start';
+    }
+  } catch (error) {
+    result = undefined;
+    status = 'fail';
+    message = 'fail move stage';
+    logger.error(`moveStageHandler. error stage move : `, error);
   }
 
-  // 오름차순 정렬 후 -> 가장 큰 스테이지 ID 확인 = 유저의 현재 스테이지
-  const latestStage = Math.max(...currentStages);
-
-  // 클라이언트 vs 서버 비교
-  if (latestStage !== payload.currentStage) {
-    return { status: 'fail', message: 'Current stage mismatch' };
-  }
-  // targetStage 대한 검증 <- 게임 에셋에 존재하는가?
-  const { stages } = getGameAssets();
-
-  if (!stages.data.some((stage) => stage.id === payload.targetStage)) {
-    return { status: 'fail', message: `Target stage (${payload.targetStage}) not found` };
-  }
-
-  const serverTime = Date.now(); //  현재 타임스탬프
-
-  // Redis에 새로운 스테이지와 타임스탬프 저장
-  await stageModel.addStageId(uuid, payload.targetStage); // 새로운 스테이지 추가
-  await stageModel.setStage(uuid, payload.targetStage, serverTime); // 현재 스테이지와 타임스탬프 업데이트
   return {
-    status: 'success',
-    message: '스테이지 변동 성공!',
-    event: 'moveStage',
-    stage: payload.targetStage,
+    status,
+    message,
+    event,
+    ...result,
   };
 };

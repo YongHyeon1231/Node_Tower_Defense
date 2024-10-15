@@ -1,6 +1,6 @@
 export const moveStageHandler = (data) => {
-  if (data.status === 'success') {
-    console.log('스테이지 이동 성공:', data.stage);
+  if (data?.status === 'success') {
+    console.log('스테이지 이동 성공:', data);
     document.dispatchEvent(new CustomEvent('StageMoved', { detail: data }));
   } else {
     console.log('스테이지 이동 실패:', data.message);
