@@ -4,6 +4,7 @@ import {
   handlerNotFoundHandler,
   versionMismatchHandler,
 } from './connection.handler.js';
+import { monsterSpawnHandler, monsterKillerHandler } from './monster.handler.js';
 import { stageSetup, moveStage, updatedRank } from './game.handler.js';
 const handlers = [
   {
@@ -29,6 +30,14 @@ const handlers = [
   {
     event: 'handler_not_found',
     action: handlerNotFoundHandler,
+  },
+  {
+    event: 'monsterSpawn',
+    action: monsterSpawnHandler,
+  },
+  {
+    event: 'monsterKill',
+    action: monsterKillerHandler,
   },
 ];
 

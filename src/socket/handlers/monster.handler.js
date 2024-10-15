@@ -54,10 +54,18 @@ export const monsterSpawnHandler = async (user, payload) => {
 
     // 4단계: 클라이언트한테 소환할 몬스터에 대한 정보를 보내주기
     return {
-      event: 'requestSpawnMonster',
+      event: 'monsterSpawn',
     };
   } catch (error) {
     logger.error(`Error in monsterSpawnHandler: ${error.message}`);
+    throw error;
+  }
+};
+
+export const monsterKillerHandler = async (user, payload) => {
+  try {
+  } catch (error) {
+    logger.error(`Error in monsterKillerHandler: ${error.message}`);
     throw error;
   }
 };

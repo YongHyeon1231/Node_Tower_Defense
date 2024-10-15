@@ -1,4 +1,4 @@
-import { monsterSpawnHandler } from './monster.handler.js';
+import { monsterSpawnHandler, monsterKillerHandler } from './monster.handler.js';
 
 const ping = async (user, payload) => {
   return {
@@ -9,6 +9,7 @@ const ping = async (user, payload) => {
 const handlerMappings = {
   999: ping,
   21: monsterSpawnHandler,
+  22: monsterKillerHandler,
 };
 
 export default handlerMappings;

@@ -1,6 +1,8 @@
 import { Base } from './base.js';
 import { Monster } from './monster.js';
 import { Tower } from './tower.js';
+import { getGameData } from './index.js';
+import { requestKillMonster, requestSpawnMonster } from './Socket.js';
 
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
@@ -22,6 +24,82 @@ export const setCurrentStage = (changeStage) => {
 export const getCurrentStage = () => {
   return currentStage;
 };
+
+//#region Monster Spawn
+let stageData = getGameData().stages;
+let stageInfo = stageData.find((stage) => stage.id === currentStage);
+let maxMonsterCount = stageInfo.monsterCount;
+let monsterTypeRange = stageInfo.monsterTypeRange;
+
+const monsterData = getGameData().monsters;
+let availableMonsters = monsterData.slice(0, monsterTypeRange);
+
+let isStageComplete = false;
+
+// weight에 따라 몬스터를 선택하는 함수
+function selectMonsterByWeight() {
+  const totalWeight = availableMonsters.reduce((sum, monster) => sum + monster.weight, 0);
+  const random = Math.random() * totalWeight;
+
+  let accumulatedWeight = 0;
+  for (let i = 0; i < availableMonsters.length; i++) {
+    accumulatedWeight += availableMonsters[i].weight;
+    if (random <= accumulatedWeight) {
+      return availableMonsters[i];
+    }
+  }
+}
+
+// 몬스터 소환 함수
+function spawnMonster() {
+  if (monsterCount >= maxMonsterCount) {
+    isStageComplete = true;
+    return;
+  }
+
+  const selectedMonster = selectMonsterByWeight();
+  const monster = new Monster(
+    monsterPath,
+    monsterImages[Number(selectedMonster.id) - 1200],
+    monsterLevel,
+  );
+  monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
+  requestSpawnMonster(); //서버에 몬스터 소환 요청
+  monsterCount++;
+}
+
+// 새로운 스테이지로 변경 시 호출될 함수
+function changeStage(newStageId) {
+  // 스테이지가 없으면 게임 끝
+  if (!stageData.find((stage) => stage.id === newStageId)) {
+    alert('모든 스테이지 완료! 게임 클리어!');
+    location.reload();
+    return;
+  }
+  currentStage = newStageId;
+  stageInfo = stageData.find((stage) => stage.id === currentStage);
+  maxMonsterCount = stageInfo.monsterCount;
+  monsterTypeRange = stageInfo.monsterTypeRange;
+  availableMonsters = monsterData.slice(0, monsterTpyeRange);
+  monsterCount = 0;
+  isStageComplete = false; // 스테이지 완료 여부 초기화
+  monsters = []; // 남은 몬스터 초기화 (애초에 있으면 안되긴함)
+}
+
+// 몬스터 죽였을때 로직
+function killMonster(index) {
+  userGold += monsters[index].killGold;
+  score += monsters[index].killScore;
+  monsters.splice(index, 1); // 몬스터 리스트에서 제거
+  requestKillMonster();
+  // 남은 몬스터가 없다면 다음 스테이지로
+  if (monsters.length === 0 && monsterCount >= maxMonsterCount) {
+    // 2초 후 스테이지 넘어감
+    setTimeout(() => changeStage(currentStage + 1), 2000);
+  }
+}
+
+//#endregion
 
 let serverSocket; // 서버 웹소켓 객체
 const canvas = document.getElementById('gameCanvas');
@@ -66,12 +144,15 @@ baseImage.src = 'images/base.png';
 const pathImage = new Image();
 pathImage.src = 'images/path.png';
 
+// 몬스터 이미지 로딩 파트
 const monsterImages = [];
 for (let i = 1; i <= NUM_OF_MONSTERS; i++) {
   const img = new Image();
   img.src = `images/monster${i}.png`;
   monsterImages.push(img);
 }
+
+//
 
 let monsterPath;
 
@@ -244,12 +325,14 @@ function placeBase() {
   base.draw(ctx, baseImage);
 }
 
-function spawnMonster() {
-  if (monsters.length < 10) {
-    // 10이 아니라 나중에 스테이지별로 몬스터의 수를 받아와야함
-    monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
-  }
-}
+// function spawnMonster() {
+//   // if (monsters.length < 10) {
+//   //   // 10이 아니라 나중에 스테이지별로 몬스터의 수를 받아와야함
+//   //   monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
+//   // }
+//   monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
+//   requestSpawnMonster();
+// }
 
 function gameLoop(previousTime = null, elapsedTime = null) {
   if (previousTime === null) {
@@ -312,18 +395,12 @@ function gameLoop(previousTime = null, elapsedTime = null) {
 
   //몬스터 스폰을 프레임단위로 업데이트
   monsterSpawnInterval -= 1;
-  if (monsterSpawnInterval === 0) {
+  if (monsterSpawnInterval === 0 && !isStageComplete) {
     spawnMonster();
     monsterSpawnInterval += 60;
   }
 
   requestAnimationFrame(() => gameLoop(currentTime, elapsedTime)); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
-}
-
-function killMonster(i) {
-  userGold += monsters[i].killGold;
-  score += monsters[i].killScore;
-  monsters.splice(i, 1);
 }
 
 function initGame() {

@@ -31,6 +31,10 @@ export const sendEvent = (handlerId, payload) => {
   });
 };
 
+export const requestKillMonster = () => {
+  sendEvent(22, {});
+};
+
 export const requestSpawnMonster = () => {
   sendEvent(21, {});
 };

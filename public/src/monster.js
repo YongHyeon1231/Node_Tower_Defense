@@ -6,7 +6,8 @@ export class Monster {
     }
 
     // monsterNumber가
-    this.monsterNumber = Math.floor(Math.random() * monsterImages.length); // 몬스터 번호 (1 ~ 5. 몬스터를 추가해도 숫자가 자동으로 매겨집니다!)
+    // 몬스터 번호 (1 ~ 5. 몬스터를 추가해도 숫자가 자동으로 매겨집니다!)
+    this.monsterNumber = Math.floor(Math.random() * monsterImages.length);
     this.path = path; // 몬스터가 이동할 경로
     this.currentIndex = 0; // 몬스터가 이동 중인 경로의 인덱스
     this.x = path[0].x; // 몬스터의 x 좌표 (최초 위치는 경로의 첫 번째 지점)
