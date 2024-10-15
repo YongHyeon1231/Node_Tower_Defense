@@ -1,7 +1,11 @@
 import { Base } from './base.js';
 import { Monster } from './monster.js';
 import { Tower } from './tower.js';
-import { buyTowerhandler } from './handlers/tower.handler.js';
+import {
+  buyTowerhandler,
+  sellTowerhandler,
+  upgradeTowerhandler,
+} from './handlers/tower.handler.js';
 
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
@@ -29,16 +33,17 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
-const NUM_OF_TOWERS = 3; // 몬스터 개수
+const NUM_OF_TOWERS = 3; // 타워 개수
 
 let userGold = 10000; // 유저 골드
 let base; // 기지 객체
+
 // 플레이어의 기지 체력
 let baseHp = 1000; // 기지 체력
 
 let towerCost = 100; // 타워 구입 비용
 let upgradeCost = 1000;
-let numOfInitialTowers = 2; // 초기 타워 개수
+let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
@@ -162,7 +167,7 @@ function getRandomPositionNearPath(maxDistance) {
 
   return {
     x: Math.floor((posX + offsetX) * 0.8), // 타워가 기지에 너무 붙어서 생성되는 것 방지 (x위치 보정)
-    y: posY + offsetY,
+    y: Math.floor(posY + offsetY),
   };
 }
 
@@ -199,18 +204,19 @@ function placeInitialTowers() {
     //     x = newPosition.x;
     //     y = newPosition.y;
     //   }
-    // }
+    // } 겹치지 않게 하는 코드인데 알고리즘이 망해서 폐기
     let towerNum = Math.floor(Math.random() * 3);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImages[towerNum]);
     const data = {
-      idx: tower.length - 1,
-      towerId: towerNum,
+      idx: towers[towers.length - 1].towerDataIdx,
+      towerUUID: towers[towers.length - 1].towerUUID,
       x: x,
       y: y,
       towerLevel: 0,
     };
+    console.log(data);
     buyTowerhandler(data);
   }
 }
@@ -228,30 +234,51 @@ function placeNewTower() {
     //     x = newPosition.x;
     //     y = newPosition.y;
     //   }
-    // }
+    // } 겹치지 않게 하는 코드인데 알고리즘이 망해서 폐기
     let towerNum = Math.floor(Math.random() * 3);
-    console.log(towerNum);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImages[towerNum]);
     userGold -= towerCost;
     const data = {
-      idx: tower.length - 1,
-      towerId: towerNum,
+      idx: towers[towers.length - 1].towerDataIdx,
+      towerUUID: towers[towers.length - 1].towerUUID,
       x: x,
       y: y,
       towerLevel: 0,
     };
+    console.log(data);
     buyTowerhandler(data);
   }
 }
 
-function upgradeTowers() {
+// 타워 업그레이드 함수
+function upgradeTower(tower) {
   if (userGold >= upgradeCost) {
-    for (let i = 0; i < towers.length; i++) {
-      towers[i].towerLevel += 1;
-    }
+    tower.towerLevel += 1;
     userGold -= upgradeCost;
+    console.log('타워 업그레이드 완료');
+    const data = {
+      idx: tower.towerDataIdx,
+      towerUUID: tower.towerUUID,
+      x: tower.x,
+      y: tower.y,
+      towerLevel: tower.towerLevel,
+    };
+    console.log(tower.towerLevel);
+    upgradeTowerhandler(data);
+  } else {
+    console.log('골드가 부족합니다.');
+  }
+}
+
+// 타워 판매 함수
+function sellTower(tower) {
+  const towerIndex = towers.indexOf(tower);
+  if (towerIndex !== -1) {
+    towers.splice(towerIndex, 1);
+    userGold += towerCost * 0.5; // 판매 시 골드 회수
+    console.log('타워 판매 완료');
   }
 }
 
@@ -294,6 +321,21 @@ function gameLoop(previousTime = null, elapsedTime = null) {
   towers.forEach((tower) => {
     tower.draw(ctx, towerImages[tower.towerNum]);
     tower.updateCooldown();
+
+    canvas.addEventListener('click', (event) => {
+      const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+      const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+      if (
+        mouseX >= tower.x &&
+        mouseX <= tower.x + tower.width &&
+        mouseY >= tower.y &&
+        mouseY <= tower.y + tower.height
+      ) {
+        onTowerClick(tower);
+      }
+    });
+
     monsters.forEach((monster) => {
       const distance = Math.sqrt(
         Math.pow(tower.x - monster.x, 2) + Math.pow(tower.y - monster.y, 2),
@@ -381,15 +423,86 @@ buyTowerButton.addEventListener('click', placeNewTower);
 
 document.body.appendChild(buyTowerButton);
 
+// const upgradeTowerButton = document.createElement('button');
+// upgradeTowerButton.textContent = '타워 업그레이드';
+// upgradeTowerButton.style.position = 'absolute';
+// upgradeTowerButton.style.top = '10px';
+// upgradeTowerButton.style.right = '140px';
+// upgradeTowerButton.style.padding = '10px 20px';
+// upgradeTowerButton.style.fontSize = '16px';
+// upgradeTowerButton.style.cursor = 'pointer';
+
+// upgradeTowerButton.addEventListener('click', upgradeTowers);
+
+// document.body.appendChild(upgradeTowerButton);
+
+// 게임 초기화 시 버튼 미리 생성
 const upgradeTowerButton = document.createElement('button');
+const sellTowerButton = document.createElement('button');
+
 upgradeTowerButton.textContent = '타워 업그레이드';
-upgradeTowerButton.style.position = 'absolute';
-upgradeTowerButton.style.top = '10px';
-upgradeTowerButton.style.right = '140px';
-upgradeTowerButton.style.padding = '10px 20px';
-upgradeTowerButton.style.fontSize = '16px';
-upgradeTowerButton.style.cursor = 'pointer';
+sellTowerButton.textContent = '타워 판매';
 
-upgradeTowerButton.addEventListener('click', upgradeTowers);
+// 버튼 스타일 설정
+[upgradeTowerButton, sellTowerButton].forEach((button) => {
+  button.style.position = 'absolute';
+  button.style.padding = '10px 20px';
+  button.style.fontSize = '16px';
+  button.style.cursor = 'pointer';
+  button.style.display = 'none'; // 처음에 숨김
+  document.body.appendChild(button);
+});
 
-document.body.appendChild(upgradeTowerButton);
+// 타워 클릭 시 버튼 보이기
+function onTowerClick(tower, mouseX, mouseY) {
+  // 버튼 위치 설정
+  upgradeTowerButton.style.left = `${mouseX}px`;
+  upgradeTowerButton.style.top = `${mouseY + 60}px`;
+  sellTowerButton.style.left = `${mouseX}px`;
+  sellTowerButton.style.top = `${mouseY + 120}px`; // 아래쪽에 배치
+
+  // 버튼 보이기
+  upgradeTowerButton.style.display = 'block';
+  sellTowerButton.style.display = 'block';
+
+  upgradeTowerButton.onclick = () => {
+    upgradeTower(tower);
+    hideButtons();
+  };
+
+  sellTowerButton.onclick = () => {
+    sellTower(tower);
+    hideButtons();
+  };
+}
+
+// 버튼 숨기기 함수
+function hideButtons() {
+  upgradeTowerButton.style.display = 'none';
+  sellTowerButton.style.display = 'none';
+}
+
+// 캔버스 클릭 이벤트 처리
+canvas.addEventListener('click', (event) => {
+  const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+  const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+  let towerClicked = false; // 타워가 클릭되었는지 여부
+
+  towers.forEach((tower) => {
+    if (
+      mouseX >= tower.x &&
+      mouseX <= tower.x + tower.width &&
+      mouseY >= tower.y &&
+      mouseY <= tower.y + tower.height
+    ) {
+      onTowerClick(tower, mouseX, mouseY); // 마우스 좌표를 전달
+      towerClicked = true; // 타워 클릭됨
+    }
+  });
+
+  // 타워가 클릭되지 않았다면 버튼 숨김
+  if (!towerClicked) {
+    hideButtons();
+  }
+});

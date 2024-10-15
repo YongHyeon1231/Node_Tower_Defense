@@ -31,9 +31,19 @@ export const sendEvent = (handlerId, payload) => {
   });
 };
 
-export const buyTower = (idx, towerId, x, y, towerLevel) => {
+export const buyTower = (data) => {
   const currentTime = Date.now();
-  sendEvent(31, {idx, towerId, x, y, towerLevel, currentTime});
+  sendEvent(31, {data, currentTime});
+}
+
+export const sellTower = (data) => {
+  const currentTime = Date.now();
+  sendEvent(32, {data, currentTime});
+}
+
+export const upgradeTower = (data) => {
+  const currentTime = Date.now();
+  sendEvent(33, {data, currentTime});
 }
 
 export const requestSpawnMonster = () => {

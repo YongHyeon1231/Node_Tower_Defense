@@ -23,6 +23,27 @@
       display: none;
     }
 
+    #towerContextMenu {
+      position: absolute;
+      display: none;
+      background-color: white;
+      border: 1px solid black;
+      z-index: 100;
+      list-style-type: none;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #towerContextMenu li {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    #towerContextMenu li:hover {
+      background-color: lightgray;
+    }
+
+
     .button-container {
       display: flex;
       flex-direction: column;
@@ -64,6 +85,11 @@
     <h1 style="color: white">내일배움캠프 Node.js 트랙 타워 디펜스 게임</h1>
   </div>
   <canvas id="gameCanvas" width="1920" height="1080"></canvas>
+
+  <ul id="towerContextMenu">
+    <li id="upgradeTower">타워 업그레이드</li>
+    <li id="sellTower">타워 판매</li>
+  </ul>
 
 
 </body>

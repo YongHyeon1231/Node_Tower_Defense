@@ -7,8 +7,8 @@ import gameRedis from '../../managers/redis.manager.js';
 export const buyTower = async (user, payload) => {
   try {
     let towerInfo = {
-      towerId: payload.towerId,
-      position: { x: payload.x, y: payload.y },
+      towerId: payload.data.towerUUId,
+      position: { x: payload.data.x, y: payload.data.y },
       level: 0,
       currentTime: payload.currentTime,
     };
@@ -17,9 +17,60 @@ export const buyTower = async (user, payload) => {
       'towerInfo',
       JSON.stringify(towerInfo),
     );
-    console.log('타워구입이 서버에 전달 된건가?');
+    console.log('타워구입이 서버에 전달 된건가?', payload, '\n');
+    console.log('이건 타워의 UUID야', payload.data.towerUUID);
     return {
-      event: 'buyTower', data : towerInfo
+      event: 'buyTower',
+      data: towerInfo,
+    };
+  } catch (error) {
+    logger.error(`Error in towerHandler: ${error.message}`);
+    throw error;
+  }
+};
+
+export const sellTower = async (user, payload) => {
+  try {
+    let towerInfo = {
+      towerId: payload.data.towerId,
+      position: { x: payload.data.x, y: payload.data.y },
+      level: 0,
+      currentTime: payload.currentTime,
+    };
+    await gameRedis.hSet(
+      `tower:${payload.towerIdx} : user:${user.id}`,
+      'towerInfo',
+      JSON.stringify(towerInfo),
+    );
+    console.log('타워구입이 서버에 전달 된건가?', payload);
+    return {
+      event: 'buyTower',
+      data: towerInfo,
+    };
+  } catch (error) {
+    logger.error(`Error in towerHandler: ${error.message}`);
+    throw error;
+  }
+};
+
+export const upgradeTower = async (user, payload) => {
+  try {
+    let towerInfo = {
+      towerId: payload.data.towerId,
+      position: { x: payload.data.x, y: payload.data.y },
+      level: payload.level,
+      currentTime: payload.currentTime,
+    };
+    await gameRedis.hSet(
+      `tower:${payload.towerIdx} : user:${user.id}`,
+      'towerInfo',
+      JSON.stringify(towerInfo),
+    );
+    console.log('타워업그레이드를 해봤어요!', payload, '\n');
+    console.log('이건 업그레이드 한 타워의 UUID야', payload.data.towerUUID);
+    return {
+      event: 'buyTower',
+      data: towerInfo,
     };
   } catch (error) {
     logger.error(`Error in towerHandler: ${error.message}`);
