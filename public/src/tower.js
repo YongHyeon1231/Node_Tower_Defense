@@ -26,7 +26,6 @@ export class Tower {
 
   draw(ctx, towerImage, delta) {
     ctx.drawImage(towerImage, this.x, this.y, this.width, this.height);
-    console.log("지금 그리는 타워의 레벨은 : ",this.towerLevel);
     if (this.beamDuration > 0 && this.target) {
       ctx.beginPath();
       ctx.moveTo(this.x + this.width / 2, this.y + this.height / 2);
