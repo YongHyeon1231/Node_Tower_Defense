@@ -54,7 +54,9 @@ function changeStage(newStageId) {
   console.log('스테이지 넘어감');
   killedMonsterCount = 0;
   spawnMonsterCount = 0;
-  const stageInfo = stageData.find((stage) => stage.id === newStageId);
+  currentStageLevel = stageData.findIndex((stage) => stage.id === newStageId);
+  const stageInfo = stageData[currentStageLevel++];
+
   isLastStage = stageData.findIndex((stage) => stage.id === newStageId);
   isLastStage = isLastStage === -1 || isLastStage + 1 >= stageData.length;
   maxMonsterCount = stageInfo.monsterCount;
@@ -105,6 +107,7 @@ let upgradeCost = 100;
 let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 30;
 let monsterLevel = 1; // 몬스터 레벨
+let currentStageLevel = 1; //
 
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
 let monsterSpawnInterval = 1000; // 몬스터 생성 주기 1000ms
@@ -367,8 +370,10 @@ function gameLoop(previousTime = null, elapsedTime = null) {
   ctx.fillText(`점수: ${score}`, 100, 100); // 현재 스코어 표시
   ctx.fillStyle = 'yellow';
   ctx.fillText(`골드: ${userGold}`, 100, 150); // 골드 표시
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = 'white';
   ctx.fillText(`현재 레벨: ${monsterLevel}`, 100, 200); // 최고 기록 표시
+  ctx.fillText(`스테이지: ${currentStageLevel}`, 100, 250);
+  ctx.fillStyle = 'black';
 
   // 타워 그리기 및 몬스터 공격 처리
   towers.forEach((tower) => {
