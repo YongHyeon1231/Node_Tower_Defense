@@ -1,14 +1,14 @@
-import { buyTower, sellTower, upgradeTower } from '../Socket.js';
+import { requestBuyTower, requestSellTower, requestUpgradeTower } from '../Socket.js';
 
 // 타워 구매
 export const buyTowerhandler = (data) => {
-  buyTower(data);
+  requestBuyTower(data);
 };
 
 export const sellTowerhandler = (data) => {
-  sellTower(data);
+  requestSellTower(data);
 };
 
 export const upgradeTowerhandler = (data) => {
-  upgradeTower(data);
+  requestUpgradeTower(data);
 };

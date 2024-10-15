@@ -1,6 +1,5 @@
 import { getGameData } from './index.js';
 
-//
 export class Tower {
   constructor(x, y, cost, i) {
     // 생성자 안에서 타워들의 속성을 정의한다고 생각하시면 됩니다!

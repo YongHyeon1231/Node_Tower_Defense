@@ -6,6 +6,7 @@ import {
 } from './connection.handler.js';
 import { gameStartHandler, gameEndHandler } from './game.handler.js';
 import { moveStageHandler } from './stage.handler.js';
+import { monsterSpawnHandler, monsterKillerHandler } from './monster.handler.js';
 const handlers = [
   {
     event: 'connection',
@@ -34,6 +35,14 @@ const handlers = [
   {
     event: 'disconnect',
     action: disconnectHandler,
+  },
+  {
+    event: 'monsterSpawn',
+    action: monsterSpawnHandler,
+  },
+  {
+    event: 'monsterKill',
+    action: monsterKillerHandler,
   },
 ];
 

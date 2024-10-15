@@ -43,13 +43,27 @@ class RedisServiceManager {
   }
 
   // Hash 데이터 명령어
+  async hSet(key, fields) {
+    const data = typeof fields === 'object' ? JSON.stringify(fields) : fields;
+    return this.client.hset(key, fields);
+  }
+
   async hSet(key, field, value) {
-    return this.client.hset(key, field, JSON.stringify(value));
+    const data = typeof value === 'object' ? JSON.stringify(value) : value;
+    return this.client.hset(key, field, data);
   }
 
   async hGet(key, field) {
-    const data = await this.client.hget(key, field);
+    let data = await this.client.hget(key, field);
     return JSON.parse(data);
+  }
+
+  async hGetAll(key) {
+    let data = await this.client.hgetall(key);
+    if (Object.keys(data).length === 0) {
+      return null;
+    }
+    return data;
   }
 
   // List 데이터 명령어

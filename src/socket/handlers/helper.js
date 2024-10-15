@@ -23,15 +23,18 @@ export const handleConnection = async (socket, user) => {
 export const handlerEvent = async (io, socket, data) => {
   const handler = handlerMappings[data.handlerId];
   if (!handler) {
-    socket.emit('response', {
-      status: 'handler_not_found',
+    socket.emit('handler_not_found', {
+      status: 'fail',
       message: `Handler not found[${data?.handlerId}]`,
     });
     return;
   }
 
   const response = await handler(data.user, data.payload);
-
+  if (!response) {
+    logger.error(`Handler[${handler}]에서 결과 반환 안함 : ${response}`);
+    return;
+  }
   const broadcast = response.broadcast;
   response.broadcast = undefined;
 

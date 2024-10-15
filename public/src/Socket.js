@@ -30,19 +30,23 @@ export const sendEvent = (handlerId, payload) => {
   });
 };
 
-export const buyTower = (data) => {
+export const requestBuyTower = (data) => {
   let currentTime = Date.now();
-  sendEvent(31, {data, currentTime});
+  sendEvent(31, { data, currentTime });
 };
 
-export const sellTower = (data) => {
+export const requestSellTower = (data) => {
   let currentTime = Date.now();
-  sendEvent(32, {data, currentTime});
+  sendEvent(32, { data, currentTime });
 };
 
-export const upgradeTower = (data) => {
+export const requestUpgradeTower = (data) => {
   let currentTime = Date.now();
-  sendEvent(33, {data, currentTime});
+  sendEvent(33, { data, currentTime });
+};
+
+export const requestKillMonster = () => {
+  sendEvent(22, {});
 };
 
 export const requestSpawnMonster = () => {
@@ -58,10 +62,5 @@ export const requestGameEnd = () => {
 };
 
 export const requestNextStage = () => {
-  // const states = GameManager.getStates();
-  //  GameManager.setState(states.stage_request);
-  sendEvent(2, {
-    //   currentStage: GameManager.getCurrentStage(),
-    currentScore: Score.score,
-  });
+  sendEvent(2, {});
 };

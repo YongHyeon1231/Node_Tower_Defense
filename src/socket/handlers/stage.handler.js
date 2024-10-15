@@ -1,4 +1,3 @@
-import { stageModel } from './../model/stage.model.js';
 import { getGameAssets } from '../../init/assets.js';
 import logger from '../../libs/logger.js';
 import redis from '../../managers/redis.manager.js';
