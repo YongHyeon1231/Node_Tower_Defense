@@ -52,20 +52,26 @@ function selectMonsterByWeight() {
 
 // 몬스터 소환 함수
 function spawnMonster() {
-  if (monsterCount >= maxMonsterCount) {
+  if (spawnMonsterCount >= maxMonsterCount) {
     isStageComplete = true;
     return;
   }
 
+  monsterSpawnInterval += 1000.0;
   const selectedMonster = selectMonsterByWeight();
+  const monsterNumber = Number(selectedMonster.id) - 13001;
+  const monsterInfo = monsterData.find((data) => data.id === selectedMonster.id);
+  //console.log('소환할 몬스터 =>', monsterNumber, ' , ', monsterImages[monsterNumber]);
   const monster = new Monster(
     monsterPath,
-    monsterImages[Number(selectedMonster.id) - 12000],
+    monsterNumber,
+    monsterImages[monsterNumber],
     monsterLevel,
+    monsterInfo,
   );
   monsters.push(monster);
+  spawnMonsterCount++;
   requestSpawnMonster(); //서버에 몬스터 소환 요청
-  monsterCount++;
 }
 
 // 새로운 스테이지로 변경 시 호출될 함수
@@ -76,25 +82,32 @@ function changeStage(newStageId) {
     location.reload();
     return;
   }
+  console.log('스테이지 넘어감');
+  killedMonsterCount = 0;
+  spawnMonsterCount = 0;
   currentStage = newStageId;
   stageInfo = stageData.find((stage) => stage.id === currentStage);
   maxMonsterCount = stageInfo.monsterCount;
   monsterTypeRange = stageInfo.monsterTypeRange;
-  availableMonsters = monsterData.slice(0, monsterTpyeRange);
-  monsterCount = 0;
+  availableMonsters = monsterData.slice(0, monsterTypeRange);
+  monsterSpawnInterval = 1000.0;
+  monsters.length = 0; // 남은 몬스터 초기화 (애초에 있으면 안되긴함)
   isStageComplete = false; // 스테이지 완료 여부 초기화
-  monsters = []; // 남은 몬스터 초기화 (애초에 있으면 안되긴함)
 }
 
 // 몬스터 죽였을때 로직
 function killMonster(index) {
+  killedMonsterCount++;
   userGold += monsters[index].killGold;
   score += monsters[index].killScore;
   monsters.splice(index, 1); // 몬스터 리스트에서 제거
   requestKillMonster();
   // 남은 몬스터가 없다면 다음 스테이지로
-  if (monsters.length === 0 && monsterCount >= maxMonsterCount) {
-    // 2초 후 스테이지 넘어감
+  const monsterCount = monsters.length;
+  // console.log(
+  //   `몬스터 죽임[${index}] , ${spawnMonsterCount} , ${killedMonsterCount}, ${maxMonsterCount}`,
+  // );
+  if (killedMonsterCount >= maxMonsterCount) {
     setTimeout(() => changeStage(currentStage + 1), 2000);
   }
 }
@@ -119,7 +132,9 @@ let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
-let monsterSpawnInterval = 60; // 몬스터 생성 주기, 현재는 60프레임, 원래는 1000ms
+let monsterSpawnInterval = 1000; // 몬스터 생성 주기 1000ms
+let killedMonsterCount = 0; //죽인 몬스터 수
+let spawnMonsterCount = 0;
 const monsters = [];
 const towers = [];
 
@@ -302,7 +317,7 @@ function placeNewTower() {
     //   }
     // }
     let towerNum = Math.floor(Math.random() * 3);
-    console.log(towerNum);
+    //console.log(towerNum);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImages[towerNum]);
@@ -324,15 +339,6 @@ function placeBase() {
   base = new Base(lastPoint.x, lastPoint.y, baseHp);
   base.draw(ctx, baseImage);
 }
-
-// function spawnMonster() {
-//   // if (monsters.length < 10) {
-//   //   // 10이 아니라 나중에 스테이지별로 몬스터의 수를 받아와야함
-//   //   monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
-//   // }
-//   monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
-//   requestSpawnMonster();
-// }
 
 function gameLoop(previousTime = null, elapsedTime = null) {
   if (previousTime === null) {
@@ -394,10 +400,9 @@ function gameLoop(previousTime = null, elapsedTime = null) {
   monsterLevel = Math.floor(score / 50) + 1;
 
   //몬스터 스폰을 프레임단위로 업데이트
-  monsterSpawnInterval -= 1;
-  if (monsterSpawnInterval === 0 && !isStageComplete) {
+  monsterSpawnInterval -= deltaTime;
+  if (monsterSpawnInterval <= 0.0 && !isStageComplete) {
     spawnMonster();
-    monsterSpawnInterval += 60;
   }
 
   requestAnimationFrame(() => gameLoop(currentTime, elapsedTime)); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함

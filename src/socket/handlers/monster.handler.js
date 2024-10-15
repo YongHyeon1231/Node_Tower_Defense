@@ -5,15 +5,20 @@ import gameRedis from '../../managers/redis.manager.js';
 
 // monster spawn handler
 export const monsterSpawnHandler = async (user, payload) => {
+  return {
+    status: 'success',
+    message: '일단 성공해',
+  };
   try {
     const stageId = await gameRedis.hGet(`user:${user.id}`, 'stage');
 
     // 1단계: 지금 스테이지에 소환되어 있는 몬스터 정보와 마지막으로 몬스터가 소환되었던 시간을 가지고와야한다.
-    const monsterInfo = await gameRedis.hGet(`user:${user.id}:stage:${stageId}`, 'monsterInfo');
+    let monsterInfo = await gameRedis.hGet(`user:${user.id}:stage:${stageId}`, 'monsterInfo');
+    const { monsters, stages } = getGameAssets();
     // 1-1단계: 몬스터 정보가 없음, 현재 몬스터 정보가 아예 없다면 새로 데이터를 생성해 줘야함 ms
     if (!monsterInfo) {
       monsterInfo = {
-        monsterCount: getGameAssets('monsters')[0].monsterCount, // 최대 몬스터 소환 수
+        monsterCount: stages.data[0].monsterCount, // 최대 몬스터 소환 수
         spawnCount: 0, // 소환된 수
         lastSpawnTime: Date.now(), // 마지막 소환 시간
       };
