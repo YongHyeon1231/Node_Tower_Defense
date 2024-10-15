@@ -60,7 +60,7 @@ export const requestGameEnd = () => {
 export const requestNextStage = () => {
   // const states = GameManager.getStates();
   //  GameManager.setState(states.stage_request);
-  sendEvent(11, {
+  sendEvent(2, {
     //   currentStage: GameManager.getCurrentStage(),
     currentScore: Score.score,
   });
