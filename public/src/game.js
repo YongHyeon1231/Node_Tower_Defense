@@ -71,8 +71,7 @@ function killMonster(index) {
   score += monsters[index].killScore;
   monsters.splice(index, 1); // 몬스터 리스트에서 제거
   requestKillMonster();
-  // 남은 몬스터가 없다면 다음 스테이지로
-  const monsterCount = monsters.length;
+
   // console.log(
   //   `몬스터 죽임[${index}] , ${spawnMonsterCount} , ${killedMonsterCount}, ${maxMonsterCount}`,
   // );
