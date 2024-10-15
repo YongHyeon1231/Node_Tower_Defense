@@ -1,5 +1,7 @@
-import { requestNextStage, requestSpawnMonster } from '../Socket.js';
-
-export const monsterSpawnHandler = (data) => {};
+export const monsterSpawnHandler = (data) => {
+  if (data.status === 'success') {
+    document.dispatchEvent(new CustomEvent('SpawnMonster', { detail: data }));
+  }
+};
 
 export const monsterKillerHandler = (data) => {};

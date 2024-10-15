@@ -36,31 +36,20 @@ let availableMonsters = monsterData.slice(0, monsterTypeRange);
 
 let isStageComplete = false;
 
-// weight에 따라 몬스터를 선택하는 함수
-function selectMonsterByWeight() {
-  const totalWeight = availableMonsters.reduce((sum, monster) => sum + monster.weight, 0);
-  const random = Math.random() * totalWeight;
-
-  let accumulatedWeight = 0;
-  for (let i = 0; i < availableMonsters.length; i++) {
-    accumulatedWeight += availableMonsters[i].weight;
-    if (random <= accumulatedWeight) {
-      return availableMonsters[i];
-    }
-  }
-}
+document.addEventListener('SpawnMonster', (data) => {
+  spawnMonster(data.detail);
+});
 
 // 몬스터 소환 함수
-function spawnMonster() {
+function spawnMonster(data) {
+  requestingSpawnMonster = false;
   if (spawnMonsterCount >= maxMonsterCount) {
-    isStageComplete = true;
     return;
   }
 
-  monsterSpawnInterval += 1000.0;
-  const selectedMonster = selectMonsterByWeight();
-  const monsterNumber = Number(selectedMonster.id) - 13001;
-  const monsterInfo = monsterData.find((data) => data.id === selectedMonster.id);
+  const spawnMonsterId = data.spawnMonsterId;
+  const monsterNumber = Number(spawnMonsterId) - 13001;
+  const monsterInfo = monsterData.find((data) => data.id === spawnMonsterId);
   //console.log('소환할 몬스터 =>', monsterNumber, ' , ', monsterImages[monsterNumber]);
   const monster = new Monster(
     monsterPath,
@@ -71,7 +60,6 @@ function spawnMonster() {
   );
   monsters.push(monster);
   spawnMonsterCount++;
-  requestSpawnMonster(); //서버에 몬스터 소환 요청
 }
 
 // 새로운 스테이지로 변경 시 호출될 함수
@@ -108,6 +96,7 @@ function killMonster(index) {
   //   `몬스터 죽임[${index}] , ${spawnMonsterCount} , ${killedMonsterCount}, ${maxMonsterCount}`,
   // );
   if (killedMonsterCount >= maxMonsterCount) {
+    isStageComplete = true;
     setTimeout(() => changeStage(currentStage + 1), 2000);
   }
 }
@@ -340,6 +329,7 @@ function placeBase() {
   base.draw(ctx, baseImage);
 }
 
+let requestingSpawnMonster = false;
 function gameLoop(previousTime = null, elapsedTime = null) {
   if (previousTime === null) {
     requestAnimationFrame(() => gameLoop(Date.now(), 0.0));
@@ -401,8 +391,10 @@ function gameLoop(previousTime = null, elapsedTime = null) {
 
   //몬스터 스폰을 프레임단위로 업데이트
   monsterSpawnInterval -= deltaTime;
-  if (monsterSpawnInterval <= 0.0 && !isStageComplete) {
-    spawnMonster();
+  if (monsterSpawnInterval <= 0.0 && !isStageComplete && !requestingSpawnMonster) {
+    requestingSpawnMonster = true;
+    requestSpawnMonster(); //서버에 몬스터 소환 요청
+    monsterSpawnInterval += 1000.0;
   }
 
   requestAnimationFrame(() => gameLoop(currentTime, elapsedTime)); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
