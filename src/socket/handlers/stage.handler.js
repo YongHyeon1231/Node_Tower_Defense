@@ -9,14 +9,15 @@ export const moveStageHandler = async (user, payload) => {
   let status = 'success';
   let result = undefined;
   const playerProgressKey = `playerProgress:${id}`;
-
+  const playerMonsterStatusKey = `playerMonsterStatus:${user.id}`;
   try {
     let playerProgress = await redis.get(playerProgressKey);
+    console.log(playerProgressKey, ' => ', playerProgress);
     if (playerProgress) {
       const { stages } = getGameAssets();
       let currentStageId = playerProgress.currentStageId;
+      let currentStageIndex = stages.data.findIndex((stage) => stage.id == currentStageId);
 
-      let currentStageIndex = stages.data.indexOf((stage) => stage.id == currentStageId);
       if (currentStageIndex === -1) {
         status = 'fail';
         message = `could not found stage : ${currentStageId}`;
@@ -30,11 +31,14 @@ export const moveStageHandler = async (user, payload) => {
         };
         playerProgress.currentStageId = result.nextStage;
         playerProgress.lastUpdate = Date.now();
-        await redis.set(playerProgressKey, playerProgress);
+        await Promise.all([
+          redis.set(playerProgressKey, playerProgress),
+          redis.unlink(playerMonsterStatusKey),
+        ]);
       }
     } else {
       status = 'fail';
-      message = 'you need game start';
+      message = 'go ahead and start';
     }
   } catch (error) {
     result = undefined;

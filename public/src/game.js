@@ -8,38 +8,14 @@ import {
   requestSellTower,
   requestBuyTower,
   requestUpgradeTower,
+  requestNextStage,
 } from './Socket.js';
-
-/* 
-  어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
-*/
-// 이전 스테이지 저장
-let prevStage = 12001;
-export const setPrevStage = (changeStage) => {
-  prevStage = changeStage;
-};
-export const getPrevStage = () => {
-  return prevStage;
-};
-
-// 현재 스테이지 저장
-let currentStage = 12001;
-export const setCurrentStage = (changeStage) => {
-  currentStage = changeStage;
-};
-export const getCurrentStage = () => {
-  return currentStage;
-};
 
 //#region Monster Spawn
 let stageData = getGameData().stages;
-let stageInfo = stageData.find((stage) => stage.id === currentStage);
-let maxMonsterCount = stageInfo.monsterCount;
-let monsterTypeRange = stageInfo.monsterTypeRange;
-
+let maxMonsterCount = 0;
 const monsterData = getGameData().monsters;
-let availableMonsters = monsterData.slice(0, monsterTypeRange);
-
+let isLastStage = false;
 let isStageComplete = false;
 
 document.addEventListener('SpawnMonster', (data) => {
@@ -68,25 +44,23 @@ function spawnMonster(data) {
   spawnMonsterCount++;
 }
 
+document.addEventListener('StageMoved', (data) => {
+  changeStage(data.detail.nextStage);
+});
+
 // 새로운 스테이지로 변경 시 호출될 함수
 function changeStage(newStageId) {
-  // 스테이지가 없으면 게임 끝
-  if (!stageData.find((stage) => stage.id === newStageId)) {
-    alert('모든 스테이지 완료! 게임 클리어!');
-    location.reload();
-    return;
-  }
   console.log('스테이지 넘어감');
   killedMonsterCount = 0;
   spawnMonsterCount = 0;
-  currentStage = newStageId;
-  stageInfo = stageData.find((stage) => stage.id === currentStage);
+  const stageInfo = stageData.find((stage) => stage.id === newStageId);
+  isLastStage = stageData.findIndex((stage) => stage.id === newStageId);
+  isLastStage = isLastStage === -1 || isLastStage + 1 >= stageData.length;
   maxMonsterCount = stageInfo.monsterCount;
-  monsterTypeRange = stageInfo.monsterTypeRange;
-  availableMonsters = monsterData.slice(0, monsterTypeRange);
   monsterSpawnInterval = 1000.0;
   monsters.length = 0; // 남은 몬스터 초기화 (애초에 있으면 안되긴함)
   isStageComplete = false; // 스테이지 완료 여부 초기화
+  requestingSpawnMonster = false; //요청한적 없는 걸로 함
 }
 
 // 몬스터 죽였을때 로직
@@ -102,8 +76,13 @@ function killMonster(index) {
   //   `몬스터 죽임[${index}] , ${spawnMonsterCount} , ${killedMonsterCount}, ${maxMonsterCount}`,
   // );
   if (killedMonsterCount >= maxMonsterCount) {
-    isStageComplete = true;
-    setTimeout(() => changeStage(currentStage + 1), 2000);
+    if (isLastStage) {
+      alert('모든 스테이지 완료! 게임 클리어!');
+      location.reload();
+    } else {
+      isStageComplete = true;
+      requestNextStage();
+    }
   }
 }
 
@@ -321,7 +300,6 @@ function placeNewTower() {
       y: y,
       towerLevel: 1,
     };
-    console.log(data);
     requestBuyTower(data);
   }
 }
@@ -457,18 +435,19 @@ canvas.addEventListener('click', (event) => {
   });
 });
 
-export const initGame = (startGold, playerHighScore) => {
+export const initGame = (startGold, playerHighScore, stageId) => {
   if (isInitGame) {
     return;
   }
+  const stage = stageData.find((stage) => stage.id == stageId);
   isInitGame = true;
   userGold = startGold;
   highScore = playerHighScore;
+  maxMonsterCount = stage.monsterCount;
   monsterPath = generateRandomMonsterPath(); // 몬스터 경로 생성
   initMap(); // 맵 초기화 (배경, 몬스터 경로 그리기)
   placeInitialTowers(); // 설정된 초기 타워 개수만큼 사전에 타워 배치
   placeBase(); // 기지 배치
-
   //setInterval(spawnMonster, monsterSpawnInterval); // 설정된 몬스터 생성 주기마다 몬스터 생성
   gameLoop(); // 게임 루프 최초 실행
 };

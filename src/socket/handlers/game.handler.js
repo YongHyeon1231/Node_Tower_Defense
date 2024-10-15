@@ -33,10 +33,12 @@ export const gameStart = async (user, payload) => {
         score: 0,
         lastUpdate: new Date(),
       });
+
+      result.gold = 0;
+      result.score = 0;
+      result.highScore = player.highScore;
+      result.stageId = stages.data[0].id;
     }
-    result.gold = 0;
-    result.score = 0;
-    result.highScore = player.highScore;
 
     // 플레이어 진행 상황 생성
   } catch (error) {

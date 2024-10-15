@@ -12,7 +12,7 @@ export const moveStage = (data) => {
 export const gameStartHandler = async (data) => {
   if (data?.status === 'success') {
     const game = await import('../game.js');
-    game.initGame(data.gold, data.highScore);
+    game.initGame(data.gold, data.highScore, data.stageId);
   } else {
     setMessage('게임 시작에 실패했습니다.');
   }

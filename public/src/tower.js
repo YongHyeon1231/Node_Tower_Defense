@@ -4,6 +4,7 @@ export class Tower {
   constructor(x, y, cost, i) {
     // 생성자 안에서 타워들의 속성을 정의한다고 생각하시면 됩니다!
     this.towersData = getGameData().towers;
+    this.towerDataIdx = this.towersData[i].id;
     this.towerNum = i;
     this.x = x; // 타워 이미지 x 좌표
     this.y = y; // 타워 이미지 y 좌표
@@ -16,7 +17,6 @@ export class Tower {
     this.attackCooltime = this.towersData[i].attackCooltime;
     this.beamDuration = 0; // 타워 광선 지속 시간
     this.target = null; // 타워 광선의 목표
-
     this.towerLevel = 1;
     this.towerUUID = crypto.randomUUID(); // 타워의 UUID 생성
     this.canvasElement = document.createElement('tower'); // 예시로 canvasElement를 설정
