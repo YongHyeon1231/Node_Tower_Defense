@@ -4,11 +4,15 @@ import {
   handlerNotFoundHandler,
   versionMismatchHandler,
 } from './connection.handler.js';
-import { stageSetup, moveStage, updatedRank } from './game.handler.js';
+import { stageSetup, moveStage, updatedRank, buyTower } from './game.handler.js';
 const handlers = [
   {
     event: 'connection',
     action: connectHandler,
+  },
+  {
+    event: 'event',
+    action: buyTower,
   },
   {
     event: 'version_mismatch',

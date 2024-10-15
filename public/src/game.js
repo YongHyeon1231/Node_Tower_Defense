@@ -1,6 +1,7 @@
 import { Base } from './base.js';
 import { Monster } from './monster.js';
 import { Tower } from './tower.js';
+import { buyTowerhandler } from './handlers/tower.handler.js';
 
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
@@ -37,7 +38,7 @@ let baseHp = 1000; // 기지 체력
 
 let towerCost = 100; // 타워 구입 비용
 let upgradeCost = 1000;
-let numOfInitialTowers = 5; // 초기 타워 개수
+let numOfInitialTowers = 2; // 초기 타워 개수
 let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
@@ -203,6 +204,14 @@ function placeInitialTowers() {
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImages[towerNum]);
+    const data = {
+      idx: tower.length - 1,
+      towerId: towerNum,
+      x: x,
+      y: y,
+      towerLevel: 0,
+    };
+    buyTowerhandler(data);
   }
 }
 
@@ -226,6 +235,14 @@ function placeNewTower() {
     towers.push(tower);
     tower.draw(ctx, towerImages[towerNum]);
     userGold -= towerCost;
+    const data = {
+      idx: tower.length - 1,
+      towerId: towerNum,
+      x: x,
+      y: y,
+      towerLevel: 0,
+    };
+    buyTowerhandler(data);
   }
 }
 
@@ -234,8 +251,8 @@ function upgradeTowers() {
     for (let i = 0; i < towers.length; i++) {
       towers[i].towerLevel += 1;
     }
+    userGold -= upgradeCost;
   }
-  userGold -= upgradeCost;
 }
 
 function placeBase() {

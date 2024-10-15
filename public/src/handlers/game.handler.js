@@ -14,3 +14,7 @@ export const updatedRank = (data) => {
   //   highDistance: data.firsUser.highDistance,
   // });
 };
+
+export const buyTower = (data) =>{
+  console.log("데이터가 여기까지 온다고?", data);
+};
