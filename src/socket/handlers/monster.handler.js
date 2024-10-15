@@ -1,4 +1,3 @@
-import ApiError from '../../errors/api-error.js';
 import { getGameAssets } from '../../init/assets.js';
 import logger from '../../libs/logger.js';
 import gameRedis from '../../managers/redis.manager.js';

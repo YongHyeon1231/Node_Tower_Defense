@@ -365,7 +365,7 @@ function placeNewTower() {
 
 // 타워 업그레이드 함수
 function upgradeTower(tower) {
-  if (userGold >= upgradeCost && tower.towerLevel < 3) {
+  if (isTowerUpgradable(tower)) {
     tower.towerLevel += 1;
     userGold -= upgradeCost;
     console.log('타워 업그레이드 완료');
@@ -576,23 +576,31 @@ sellTowerButton.textContent = '타워 판매';
   document.body.appendChild(button);
 });
 
+function isTowerUpgradable(tower) {
+  return userGold >= upgradeCost && tower.towerLevel < 3;
+}
 // 타워 클릭 시 버튼 보이기
 function onTowerClick(tower, mouseX, mouseY) {
   // 버튼 위치 설정
   const rect = canvas.getBoundingClientRect();
-  upgradeTowerButton.style.left = `${rect.left + mouseX + 60}px`;
-  upgradeTowerButton.style.top = `${mouseY + 60}px`;
+
+  // 조건이 되어야 업그레이드 보이도록
+  if (isTowerUpgradable(tower)) {
+    upgradeTowerButton.style.left = `${rect.left + mouseX + 60}px`;
+    upgradeTowerButton.style.top = `${mouseY + 60}px`;
+    // 버튼 보이기
+    upgradeTowerButton.style.display = 'block';
+    upgradeTowerButton.onclick = () => {
+      upgradeTower(tower);
+      hideButtons();
+    };
+  }
+
   sellTowerButton.style.left = `${rect.left + mouseX + 60}px`;
   sellTowerButton.style.top = `${mouseY + 120}px`; // 아래쪽에 배치
 
-  // 버튼 보이기
-  upgradeTowerButton.style.display = 'block';
   sellTowerButton.style.display = 'block';
-
-  upgradeTowerButton.onclick = () => {
-    upgradeTower(tower);
-    hideButtons();
-  };
+  // 버튼 보이기
 
   sellTowerButton.onclick = () => {
     sellTower(tower);
