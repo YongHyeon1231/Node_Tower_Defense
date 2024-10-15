@@ -4,4 +4,8 @@ export const monsterSpawnHandler = (data) => {
   }
 };
 
-export const monsterKillerHandler = (data) => {};
+export const monsterKillerHandler = (data) => {
+  if (data.status === 'success') {
+    document.dispatchEvent(new CustomEvent('KillMonster', { detail: data }));
+  }
+};

@@ -1,5 +1,5 @@
 export class Monster {
-  constructor(path, monsterNumber, monsterImage, level, monsterInfo) {
+  constructor(path, monsterNumber, monsterImage, level, monsterInfo, monsterUUID) {
     // 생성자 안에서 몬스터의 속성을 정의한다고 생각하시면 됩니다!
     if (!path || path.length <= 0) {
       throw new Error('몬스터가 이동할 경로가 필요합니다.');
@@ -17,10 +17,11 @@ export class Monster {
     this.speed = 2; // 몬스터의 이동 속도
     this.image = monsterImage; // 몬스터 이미지
     this.level = level; // 몬스터 레벨
-    this.killGold = this.monsterNumber * 10 + 20;
-    this.killScore = this.monsterNumber * level;
     this.monsterInfo = monsterInfo;
+    this.monsterUUID = monsterUUID;
     this.init(level);
+    this.alive = true;
+    this.requestedKill = false;
   }
 
   init(level) {
@@ -48,11 +49,22 @@ export class Monster {
       return false;
     } else {
       const isDestroyed = base.takeDamage(this.attackPower); // 기지에 도달하면 기지에 데미지를 입힙니다!
-      this.hp = 0; // 몬스터는 이제 기지를 공격했으므로 자연스럽게 소멸해야 합니다.
+      this.takeDamage(this.maxHp); // 몬스터는 이제 기지를 공격했으므로 자연스럽게 소멸해야 합니다.
       return isDestroyed;
     }
   }
 
+  takeDamage(damage) {
+    if (!this.alive) {
+      return;
+    }
+
+    this.hp -= damage;
+    if (this.hp <= 0.0) {
+      this.hp = 0.0;
+      this.alive = false;
+    }
+  }
   draw(ctx) {
     ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     ctx.font = '12px Arial';

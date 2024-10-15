@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "data": [
     { "id": 12001, "monsterCount": 20, "monsterTypeRange": 1 },
-    { "id": 12002, "monsterCount": 25, "monsterTypeRange": 2 },
-    { "id": 12003, "monsterCount": 30, "monsterTypeRange": 3 },
-    { "id": 12004, "monsterCount": 35, "monsterTypeRange": 4 },
-    { "id": 12005, "monsterCount": 40, "monsterTypeRange": 5 },
-    { "id": 12006, "monsterCount": 45, "monsterTypeRange": 6 }
+    { "id": 12002, "monsterCount": 22, "monsterTypeRange": 2 },
+    { "id": 12003, "monsterCount": 25, "monsterTypeRange": 3 },
+    { "id": 12004, "monsterCount": 28, "monsterTypeRange": 4 },
+    { "id": 12005, "monsterCount": 30, "monsterTypeRange": 5 },
+    { "id": 12006, "monsterCount": 35, "monsterTypeRange": 6 }
   ]
 }

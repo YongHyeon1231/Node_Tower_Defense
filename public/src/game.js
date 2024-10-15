@@ -30,9 +30,10 @@ function spawnMonster(data) {
     return;
   }
 
-  const spawnMonsterId = data.spawnMonsterId;
-  const monsterNumber = Number(spawnMonsterId) - 13001;
-  const monsterInfo = monsterData.find((data) => data.id === spawnMonsterId);
+  const { spawnMonsterId, monsterUUID } = data;
+
+  const monsterNumber = monsterData.findIndex((data) => data.id === spawnMonsterId);
+  const monsterInfo = monsterData[monsterNumber];
   //console.log('소환할 몬스터 =>', monsterNumber, ' , ', monsterImages[monsterNumber]);
   const monster = new Monster(
     monsterPath,
@@ -40,6 +41,7 @@ function spawnMonster(data) {
     monsterImages[monsterNumber],
     monsterLevel,
     monsterInfo,
+    monsterUUID,
   );
   monsters.push(monster);
   spawnMonsterCount++;
@@ -66,21 +68,25 @@ function changeStage(newStageId) {
   requestingSpawnMonster = false; //요청한적 없는 걸로 함
 }
 
+document.addEventListener('KillMonster', (data) => {
+  killMonster(data.detail);
+});
 // 몬스터 죽였을때 로직
-function killMonster(index) {
+function killMonster(data) {
   killedMonsterCount++;
-  userGold += monsters[index].killGold;
-  score += monsters[index].killScore;
-  monsters.splice(index, 1); // 몬스터 리스트에서 제거
-  requestKillMonster();
+  userGold = Number(data.gold);
+  score = Number(data.score);
+  monsterLevel = Number(data.monsterLevel);
 
-  // console.log(
-  //   `몬스터 죽임[${index}] , ${spawnMonsterCount} , ${killedMonsterCount}, ${maxMonsterCount}`,
-  // );
+  const monsterIndex = monsters.findIndex((monster) => monster.monsterUUID == data.monsterUUID);
+  if (monsterIndex !== -1) {
+    monsters.splice(monsterIndex, 1);
+  }
+
   if (killedMonsterCount >= maxMonsterCount) {
     if (isLastStage) {
+      requestGameEnd();
       alert('모든 스테이지 완료! 게임 클리어!');
-      location.reload();
     } else {
       isStageComplete = true;
       requestNextStage();
@@ -90,14 +96,13 @@ function killMonster(index) {
 
 //#endregion
 
-let serverSocket; // 서버 웹소켓 객체
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 const NUM_OF_TOWERS = 3; // 몬스터 개수
 
-let userGold = 10000; // 유저 골드
+let userGold = 0; // 유저 골드
 let base; // 기지 객체
 // 플레이어의 기지 체력
 let baseHp = 1000; // 기지 체력
@@ -362,17 +367,6 @@ function gameLoop(previousTime = null, elapsedTime = null) {
   // 렌더링 시에는 항상 배경 이미지부터 그려야 합니다! 그래야 다른 이미지들이 배경 이미지 위에 그려져요!
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // 배경 이미지 다시 그리기
   drawPath(monsterPath); // 경로 다시 그리기
-
-  ctx.font = '25px Times New Roman';
-  ctx.fillStyle = 'skyblue';
-  ctx.fillText(`최고 기록: ${highScore}`, 100, 50); // 최고 기록 표시
-  ctx.fillStyle = 'white';
-  ctx.fillText(`점수: ${score}`, 100, 100); // 현재 스코어 표시
-  ctx.fillStyle = 'yellow';
-  ctx.fillText(`골드: ${userGold}`, 100, 150); // 골드 표시
-  ctx.fillStyle = 'white';
-  ctx.fillText(`현재 레벨: ${monsterLevel}`, 100, 200); // 최고 기록 표시
-  ctx.fillText(`스테이지: ${currentStageLevel}`, 100, 250);
   ctx.fillStyle = 'black';
 
   // 타워 그리기 및 몬스터 공격 처리
@@ -381,6 +375,10 @@ function gameLoop(previousTime = null, elapsedTime = null) {
     tower.updateCooldown(deltaTime);
 
     monsters.forEach((monster) => {
+      if (!monster.alive) {
+        return;
+      }
+
       const distance = Math.sqrt(
         Math.pow(tower.x - monster.x, 2) + Math.pow(tower.y - monster.y, 2),
       );
@@ -395,24 +393,23 @@ function gameLoop(previousTime = null, elapsedTime = null) {
 
   for (let i = monsters.length - 1; i >= 0; i--) {
     const monster = monsters[i];
-    if (monster.hp > 0) {
+    if (monster.alive) {
       const isDestroyed = monster.move(base);
       if (isDestroyed) {
         /* 게임 오버 */
         requestGameEnd();
         alert('게임 오버. 스파르타 본부를 지키지 못했다...ㅠㅠ');
+        break;
       }
       monster.draw(ctx);
-    } else {
+    } else if (!monster.requestedKill) {
       /* 몬스터가 죽었을 때 */
       //monsters.splice(i, 1);
       //점수, 골드 추가
-      killMonster(i);
+      monster.requestedKill = true;
+      requestKillMonster(monster.monsterUUID);
     }
   }
-  //스테이지(monsterLevel) 업데이트
-  monsterLevel = Math.floor(score / 50) + 1;
-
   //몬스터 스폰을 프레임단위로 업데이트
   monsterSpawnInterval -= deltaTime;
   if (monsterSpawnInterval <= 0.0 && !isStageComplete && !requestingSpawnMonster) {
@@ -420,6 +417,17 @@ function gameLoop(previousTime = null, elapsedTime = null) {
     requestSpawnMonster(); //서버에 몬스터 소환 요청
     monsterSpawnInterval += 1000.0;
   }
+
+  ctx.font = '25px Times New Roman';
+  ctx.fillStyle = 'skyblue';
+  ctx.fillText(`최고 기록: ${highScore}`, 100, 50); // 최고 기록 표시
+  ctx.fillStyle = 'white';
+  ctx.fillText(`점수: ${score}`, 100, 100); // 현재 스코어 표시
+  ctx.fillStyle = 'yellow';
+  ctx.fillText(`골드: ${userGold}`, 100, 150); // 골드 표시
+  ctx.fillStyle = 'white';
+  ctx.fillText(`현재 레벨: ${monsterLevel}`, 100, 200); // 최고 기록 표시
+  ctx.fillText(`스테이지: ${currentStageLevel}`, 100, 250);
 
   requestAnimationFrame(() => gameLoop(currentTime, elapsedTime)); // 지속적으로 다음 프레임에 gameLoop 함수 호출할 수 있도록 함
 }

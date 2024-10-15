@@ -39,7 +39,7 @@ export class Tower {
 
   attack(monster) {
     if (this.cooldown <= 0) {
-      monster.hp -= this.attackPower + (this.towerLevel - 1) * 50;
+      monster.takeDamage(this.attackPower + (this.towerLevel - 1) * 50);
       this.cooldown += this.attackCooltime; // 3초 쿨타임 (초당 60프레임)
       this.beamDuration = 500; // 광선 지속 시간 (0.5초)
       this.target = monster;
