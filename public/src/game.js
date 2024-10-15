@@ -288,7 +288,6 @@ function sellTower(tower) {
     };
     sellTowerhandler(data);
   }
-  userGold += upgradeCost;
 }
 
 function placeBase() {
