@@ -34,6 +34,7 @@ const handlers = [
     event: 'game_end',
     action: gameEndHandler,
   },
+  { event: 'disconnect', action: disconnectHandler },
 ];
 
 export default handlers;
