@@ -466,19 +466,21 @@ await Promise.all([
   ...monsterImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
 ]);
 
-const buyTowerButton = document.createElement('button');
-buyTowerButton.textContent = '타워 구입';
-buyTowerButton.style.position = 'absolute';
-buyTowerButton.style.top = '10px';
-buyTowerButton.style.right = '10px';
-buyTowerButton.style.padding = '10px 20px';
-buyTowerButton.style.fontSize = '16px';
-buyTowerButton.style.cursor = 'pointer';
+function addBuyTowerButton() {
+  const rect = canvas.getBoundingClientRect();
+  const buyTowerButton = document.createElement('button');
+  buyTowerButton.textContent = '타워 구입';
+  buyTowerButton.style.position = 'absolute';
+  buyTowerButton.style.top = `${rect.top + 10}px`;
 
-buyTowerButton.addEventListener('click', placeNewTower);
-
-document.body.appendChild(buyTowerButton);
-
+  buyTowerButton.style.padding = '10px 20px';
+  buyTowerButton.style.fontSize = '16px';
+  buyTowerButton.style.cursor = 'pointer';
+  buyTowerButton.style.left = `${rect.left + rect.width - 150}px`;
+  buyTowerButton.addEventListener('click', placeNewTower);
+  document.body.appendChild(buyTowerButton);
+}
+addBuyTowerButton();
 // 게임 초기화 시 버튼 미리 생성
 const upgradeTowerButton = document.createElement('button');
 const sellTowerButton = document.createElement('button');
