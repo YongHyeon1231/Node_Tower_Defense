@@ -16,3 +16,8 @@ export const gameStartHandler = (data) => {
     setMessage('게임 시작에 실패했습니다.');
   }
 };
+
+export const gameEndHandler = (data) => {
+  //새로고침해서 다시 다 불러오게 만듦
+  location.reload();
+};

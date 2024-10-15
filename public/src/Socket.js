@@ -39,13 +39,7 @@ export const requestGameStart = async () => {
 };
 
 export const requestGameEnd = () => {
-  // const states = GameManager.getStates();
-  // GameManager.setState(states.game_over);
-  sendEvent(3, {
-    //currentStage: GameManager.getCurrentStage(),
-    currentScore: Score.score,
-    currentDistance: Distance.distance,
-  });
+  sendEvent(3, {});
 };
 
 export const requestNextStage = () => {
