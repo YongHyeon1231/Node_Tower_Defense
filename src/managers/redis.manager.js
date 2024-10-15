@@ -53,6 +53,10 @@ class RedisServiceManager {
     return this.client.hset(key, field, data);
   }
 
+  async hDel(key, field) {
+    return this.client.hdel(key, field);
+  }
+
   async hGet(key, field) {
     let data = await this.client.hget(key, field);
     return JSON.parse(data);
@@ -129,6 +133,7 @@ class RedisServiceManager {
     }
     return this.client.unlink(...keys);
   }
+
   async disconnect() {
     if (this.client) {
       await this.client.quit();
