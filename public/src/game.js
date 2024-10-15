@@ -58,6 +58,7 @@ function changeStage(newStageId) {
   currentStageLevel = stageData.findIndex((stage) => stage.id === newStageId);
   const stageInfo = stageData[currentStageLevel++];
 
+  monsterPath = generateRandomMonsterPath();
   isLastStage = stageData.findIndex((stage) => stage.id === newStageId);
   isLastStage = isLastStage === -1 || isLastStage + 1 >= stageData.length;
   maxMonsterCount = stageInfo.monsterCount;
@@ -165,27 +166,70 @@ let monsterPath;
 function generateRandomMonsterPath() {
   const path = [];
   let currentX = 0;
-  let currentY = Math.floor(Math.random() * 21) + 500; // 500 ~ 520 범위의 y 시작 (캔버스 y축 중간쯤에서 시작할 수 있도록 유도)
+  let currentY = Math.floor(canvas.height * 0.5);
+
+  const endX = canvas.width - 50;
+  const minY = canvas.height * 0.3; // Y축 범위 최소값 (잔디 영역 내 최소)
+  const maxY = canvas.height * 0.7; // Y축 범위 최대값 (잔디 영역 내 최대)
+  const maxHorizontalSegments = 5; // 수평 구간을 제한해서 경로가 너무 직선으로만 이어지지 않도록
+  const maxExitDistance = canvas.width * 0.1;
+
+  let horizontalSegmentCount = 0;
+  let previousDirection = 'right'; // 경로의 초기 방향은 오른쪽으로 진행
 
   path.push({ x: currentX, y: currentY });
 
-  while (currentX < canvas.width) {
-    currentX += Math.floor(Math.random() * 100) + 50; // 50 ~ 150 범위의 x 증가
-    // x 좌표에 대한 clamp 처리
-    if (currentX > canvas.width) {
-      currentX = canvas.width;
+  const maxSegmentLength = 100; // 구간 길이
+  const maxSegments = Math.floor(Math.random() * 50.0) + 30; // 구간 개수
+
+  for (let i = 0; i < maxSegments; i++) {
+    const distanceToExit = endX - currentX;
+
+    // 출구로 직선 이동 조건: 수평 구간이 너무 많지 않도록 제한
+    if (distanceToExit < maxExitDistance && horizontalSegmentCount < maxHorizontalSegments) {
+      currentX = endX;
+      path.push({ x: currentX, y: currentY });
+      break;
     }
 
-    currentY += Math.floor(Math.random() * 200) - 100; // -100 ~ 100 범위의 y 변경
-    // y 좌표에 대한 clamp 처리
-    if (currentY < 0) {
-      currentY = 0;
+    const segmentLength = Math.floor(Math.random() * maxSegmentLength) + 100;
+    // 경로는 직각으로 꺾이도록 설정
+    if (previousDirection === 'right') {
+      // 이전에 수평으로 이동했으면, 이번엔 위/아래로 직각 꺾기
+      const newY = currentY + (Math.random() < 0.5 ? segmentLength : -segmentLength);
+      if (newY >= minY && newY <= maxY) {
+        // Y축 경계 내에서만 움직임
+        currentY = newY;
+        previousDirection = 'up-down';
+        horizontalSegmentCount = 0; // 수평 구간을 다시 리셋
+      }
+    } else {
+      // 이전에 수직으로 이동했으면, 이번엔 오른쪽으로 직각 꺾기
+      currentX += segmentLength;
+      horizontalSegmentCount += 1; // 수평 구간 카운트 증가
+      previousDirection = 'right';
     }
-    if (currentY > canvas.height) {
-      currentY = canvas.height;
+
+    // 경계 처리: 잔디 영역 내에서만 경로가 생성되도록 X, Y 좌표를 제한
+    currentX = Math.max(0, Math.min(currentX, endX));
+    currentY = Math.max(minY, Math.min(currentY, maxY));
+
+    // 뒤로 가는 경로 방지
+    if (i > 0 && currentX < path[i - 1].x) {
+      currentX = path[i - 1].x;
     }
 
     path.push({ x: currentX, y: currentY });
+
+    // 경로가 끝나는 조건
+    if (currentX >= endX) {
+      break;
+    }
+  }
+
+  // 경로가 끝까지 도달하지 않으면 마지막에 도착 지점 추가
+  if (currentX < endX) {
+    path.push({ x: endX, y: currentY });
   }
 
   return path;
