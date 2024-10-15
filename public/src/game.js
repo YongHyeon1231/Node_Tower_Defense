@@ -60,10 +60,10 @@ function spawnMonster() {
   const selectedMonster = selectMonsterByWeight();
   const monster = new Monster(
     monsterPath,
-    monsterImages[Number(selectedMonster.id) - 1200],
+    monsterImages[Number(selectedMonster.id) - 12000],
     monsterLevel,
   );
-  monsters.push(new Monster(monsterPath, monsterImages, monsterLevel));
+  monsters.push(monster);
   requestSpawnMonster(); //서버에 몬스터 소환 요청
   monsterCount++;
 }
