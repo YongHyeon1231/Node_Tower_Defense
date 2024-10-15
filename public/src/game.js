@@ -31,13 +31,13 @@ const ctx = canvas.getContext('2d');
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 const NUM_OF_TOWERS = 3; // 몬스터 개수
 
-let userGold = 0; // 유저 골드
+let userGold = 10000; // 유저 골드
 let base; // 기지 객체
 // 플레이어의 기지 체력
 let baseHp = 1000; // 기지 체력
 
 let towerCost = 100; // 타워 구입 비용
-let upgradeCost = 1000;
+let upgradeCost = 100;
 let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 30;
 let monsterLevel = 1; // 몬스터 레벨
@@ -288,7 +288,7 @@ function sellTower(tower) {
     };
     sellTowerhandler(data);
   }
-  userGold -= upgradeCost;
+  userGold += upgradeCost;
 }
 
 function placeBase() {
@@ -433,15 +433,73 @@ buyTowerButton.addEventListener('click', placeNewTower);
 
 document.body.appendChild(buyTowerButton);
 
+// 게임 초기화 시 버튼 미리 생성
 const upgradeTowerButton = document.createElement('button');
+const sellTowerButton = document.createElement('button');
+
 upgradeTowerButton.textContent = '타워 업그레이드';
-upgradeTowerButton.style.position = 'absolute';
-upgradeTowerButton.style.top = '10px';
-upgradeTowerButton.style.right = '140px';
-upgradeTowerButton.style.padding = '10px 20px';
-upgradeTowerButton.style.fontSize = '16px';
-upgradeTowerButton.style.cursor = 'pointer';
+sellTowerButton.textContent = '타워 판매';
 
-upgradeTowerButton.addEventListener('click', upgradeTower);
+// 버튼 스타일 설정
+[upgradeTowerButton, sellTowerButton].forEach((button) => {
+  button.style.position = 'absolute';
+  button.style.padding = '10px 20px';
+  button.style.fontSize = '16px';
+  button.style.cursor = 'pointer';
+  button.style.display = 'none'; // 처음에 숨김
+  document.body.appendChild(button);
+});
 
-document.body.appendChild(upgradeTowerButton);
+// 타워 클릭 시 버튼 보이기
+function onTowerClick(tower, mouseX, mouseY) {
+  // 버튼 위치 설정
+  upgradeTowerButton.style.left = `${mouseX}px`;
+  upgradeTowerButton.style.top = `${mouseY + 60}px`;
+  sellTowerButton.style.left = `${mouseX}px`;
+  sellTowerButton.style.top = `${mouseY + 120}px`; // 아래쪽에 배치
+
+  // 버튼 보이기
+  upgradeTowerButton.style.display = 'block';
+  sellTowerButton.style.display = 'block';
+
+  upgradeTowerButton.onclick = () => {
+    upgradeTower(tower);
+    hideButtons();
+  };
+
+  sellTowerButton.onclick = () => {
+    sellTower(tower);
+    hideButtons();
+  };
+}
+
+// 버튼 숨기기 함수
+function hideButtons() {
+  upgradeTowerButton.style.display = 'none';
+  sellTowerButton.style.display = 'none';
+}
+
+// 캔버스 클릭 이벤트 처리
+canvas.addEventListener('click', (event) => {
+  const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+  const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+  let towerClicked = false; // 타워가 클릭되었는지 여부
+
+  towers.forEach((tower) => {
+    if (
+      mouseX >= tower.x &&
+      mouseX <= tower.x + tower.width &&
+      mouseY >= tower.y &&
+      mouseY <= tower.y + tower.height
+    ) {
+      onTowerClick(tower, mouseX, mouseY); // 마우스 좌표를 전달
+      towerClicked = true; // 타워 클릭됨
+    }
+  });
+
+  // 타워가 클릭되지 않았다면 버튼 숨김
+  if (!towerClicked) {
+    hideButtons();
+  }
+});
