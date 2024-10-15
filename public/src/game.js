@@ -274,8 +274,9 @@ function drawRotatedImage(image, x, y, width, height, angle) {
   ctx.restore();
 }
 
+const placedTowers = []; // 타워가 배치된 좌표들
+
 function getRandomPositionNearPath(maxDistance) {
-  // 타워 배치를 위한 몬스터가 지나가는 경로 상에서 maxDistance 범위 내에서 랜덤한 위치를 반환하는 함수!
   const segmentIndex = Math.floor(Math.random() * (monsterPath.length - 1));
   const startX = monsterPath[segmentIndex].x;
   const startY = monsterPath[segmentIndex].y;
@@ -286,15 +287,36 @@ function getRandomPositionNearPath(maxDistance) {
   const posX = startX + t * (endX - startX);
   const posY = startY + t * (endY - startY);
 
-  const offsetX = (Math.random() - 0.5) * 2 * maxDistance;
-  const offsetY = (Math.random() - 0.5) * 2 * maxDistance;
+  let offsetX, offsetY, pos;
 
-  const pos = {
-    x: Math.max(50, Math.min(canvas.width - 50, Math.floor((posX + offsetX) * 0.8))), // 타워가 기지에 너무 붙어서 생성되는 것 방지 (x위치 보정)
-    y: Math.max(50, Math.min(canvas.height - 50, posY + offsetY)),
-  };
+  // 타워가 분포되는 범위를 조절
+  for (let attempt = 0; attempt < 10; attempt++) {
+    offsetX = (Math.random() - 0.5) * 2 * maxDistance * (0.5 + Math.random());
+    offsetY = (Math.random() - 0.5) * 2 * maxDistance * (0.5 + Math.random());
+
+    pos = {
+      x: Math.max(50, Math.min(canvas.width - 50, Math.floor(posX + offsetX))),
+      y: Math.max(50, Math.min(canvas.height - 50, Math.floor(posY + offsetY))),
+    };
+
+    // 타워 간 최소 거리 설정  minDistance px 이상의 거리 유지
+    if (isValidPosition(pos, 75)) {
+      placedTowers.push(pos);
+      return pos;
+    }
+  }
 
   return pos;
+}
+
+function isValidPosition(newPos, minDistance) {
+  for (const tower of placedTowers) {
+    const distance = Math.sqrt(Math.pow(newPos.x - tower.x, 2) + Math.pow(newPos.y - tower.y, 2));
+    if (distance < minDistance) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // 겹치지 않는 타워 위치 찾기
