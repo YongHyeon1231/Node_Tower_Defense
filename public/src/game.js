@@ -42,6 +42,7 @@ let upgradeCost = 1000;
 let numOfInitialTowers = 5; // 초기 타워 개수
 let maxTowerNum = 50;
 let monsterLevel = 1; // 몬스터 레벨
+
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
 let monsterSpawnInterval = 60; // 몬스터 생성 주기, 현재는 60프레임, 원래는 1000ms
 const monsters = [];
