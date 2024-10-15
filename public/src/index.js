@@ -68,6 +68,8 @@ export const setGameData = (data) => {
       document.querySelector('.button-container').style.display = 'none';
       document.getElementById('gameCanvas').style.display = 'block';
       import('./game.js');
+      requestGameStart();
+    
     });
   }
 

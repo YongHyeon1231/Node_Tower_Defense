@@ -1,4 +1,6 @@
 import { monsterSpawnHandler } from './monster.handler.js';
+import { gameStart, gameEnd } from './game.handler.js';
+
 
 const ping = async (user, payload) => {
   return {
@@ -9,6 +11,8 @@ const ping = async (user, payload) => {
 const handlerMappings = {
   999: ping,
   21: monsterSpawnHandler,
+  1: gameStart,
+  9: gameEnd,
 };
 
 export default handlerMappings;

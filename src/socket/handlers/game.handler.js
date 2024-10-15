@@ -2,7 +2,7 @@ import prisma from "../../managers/prisma.manager.js";
 
 // 게임 시작 이벤트 처리
 export const gameStart = async (user, payload) => {
-  const { playerId, currentStageId, currentHQId, currentHQHp } = payload; // payload에서 데이터 추출
+  const { playerId, currentStageId } = payload; // payload에서 데이터 추출
   const { id, email, name } = user; // 사용자 정보 추출
 
   try {
