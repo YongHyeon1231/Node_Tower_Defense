@@ -1,7 +1,6 @@
 import { CLIENT_VERSION } from './Constants.js';
 import handlers from './handlers/handlerMapping.js';
 import { getLocalStorage } from './LocalStorage.js';
-
 let socket = null;
 
 const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -31,46 +30,37 @@ export const sendEvent = (handlerId, payload) => {
   });
 };
 
-export const buyTower = (data) => {
-  const currentTime = Date.now();
-  sendEvent(31, {data, currentTime});
-}
+export const requestBuyTower = (data) => {
+  let currentTime = Date.now();
+  sendEvent(31, { data, currentTime });
+};
 
-export const sellTower = (data) => {
-  const currentTime = Date.now();
-  sendEvent(32, {data, currentTime});
-}
+export const requestSellTower = (data) => {
+  let currentTime = Date.now();
+  sendEvent(32, { data, currentTime });
+};
 
-export const upgradeTower = (data) => {
-  const currentTime = Date.now();
-  sendEvent(33, {data, currentTime});
-}
+export const requestUpgradeTower = (data) => {
+  let currentTime = Date.now();
+  sendEvent(33, { data, currentTime });
+};
+
+export const requestKillMonster = () => {
+  sendEvent(22, {});
+};
 
 export const requestSpawnMonster = () => {
   sendEvent(21, {});
 };
 
-export const requestGameStart = () => {
-  // const states = GameManager.getStates();
-  // GameManager.setState(states.stage_request);
-  sendEvent(2, {});
+export const requestGameStart = async () => {
+  sendEvent(1, {});
 };
 
 export const requestGameEnd = () => {
-  // const states = GameManager.getStates();
-  // GameManager.setState(states.game_over);
-  sendEvent(3, {
-    //currentStage: GameManager.getCurrentStage(),
-    currentScore: Score.score,
-    currentDistance: Distance.distance,
-  });
+  sendEvent(3, {});
 };
 
 export const requestNextStage = () => {
-  // const states = GameManager.getStates();
-  //  GameManager.setState(states.stage_request);
-  sendEvent(11, {
-    //   currentStage: GameManager.getCurrentStage(),
-    currentScore: Score.score,
-  });
+  sendEvent(2, {});
 };

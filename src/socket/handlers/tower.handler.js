@@ -7,13 +7,13 @@ import gameRedis from '../../managers/redis.manager.js';
 export const buyTower = async (user, payload) => {
   try {
     let towerInfo = {
-      towerId: payload.data.towerUUId,
+      towerIdx: payload.data.towerIdx,
       position: { x: payload.data.x, y: payload.data.y },
       level: 0,
       currentTime: payload.currentTime,
     };
     await gameRedis.hSet(
-      `tower:${payload.towerIdx} : user:${user.id}`,
+      `tower:${payload.towerUUID} : user:${user.id}`,
       'towerInfo',
       JSON.stringify(towerInfo),
     );
@@ -24,31 +24,23 @@ export const buyTower = async (user, payload) => {
       data: towerInfo,
     };
   } catch (error) {
-    logger.error(`Error in towerHandler: ${error.message}`);
+    logger.error(`Error in buyTowerHandler: ${error.message}`);
     throw error;
   }
 };
 
 export const sellTower = async (user, payload) => {
   try {
-    let towerInfo = {
-      towerId: payload.data.towerId,
-      position: { x: payload.data.x, y: payload.data.y },
-      level: 0,
-      currentTime: payload.currentTime,
-    };
-    await gameRedis.hSet(
-      `tower:${payload.towerIdx} : user:${user.id}`,
-      'towerInfo',
-      JSON.stringify(towerInfo),
+    await gameRedis.invalidate(
+      `tower:${payload.towerUUID} : user:${user.id}`,
     );
-    console.log('타워구입이 서버에 전달 된건가?', payload);
+    console.log("타워를 팔아보자", payload, "\n");
+    console.log('이건 판매한 타워의 UUID야', payload.data.towerUUID);
     return {
-      event: 'buyTower',
-      data: towerInfo,
+      event: 'sellTower',
     };
   } catch (error) {
-    logger.error(`Error in towerHandler: ${error.message}`);
+    logger.error(`Error in sellTowerHandler: ${error.message}`);
     throw error;
   }
 };
@@ -69,11 +61,11 @@ export const upgradeTower = async (user, payload) => {
     console.log('타워업그레이드를 해봤어요!', payload, '\n');
     console.log('이건 업그레이드 한 타워의 UUID야', payload.data.towerUUID);
     return {
-      event: 'buyTower',
+      event: 'upgradeTower',
       data: towerInfo,
     };
   } catch (error) {
-    logger.error(`Error in towerHandler: ${error.message}`);
+    logger.error(`Error in upgradeTowerHandler: ${error.message}`);
     throw error;
   }
 };

@@ -43,13 +43,27 @@ class RedisServiceManager {
   }
 
   // Hash 데이터 명령어
+  async hSet(key, fields) {
+    const data = typeof fields === 'object' ? JSON.stringify(fields) : fields;
+    return this.client.hset(key, fields);
+  }
+
   async hSet(key, field, value) {
-    return this.client.hset(key, field, JSON.stringify(value));
+    const data = typeof value === 'object' ? JSON.stringify(value) : value;
+    return this.client.hset(key, field, data);
   }
 
   async hGet(key, field) {
-    const data = await this.client.hget(key, field);
+    let data = await this.client.hget(key, field);
     return JSON.parse(data);
+  }
+
+  async hGetAll(key) {
+    let data = await this.client.hgetall(key);
+    if (Object.keys(data).length === 0) {
+      return null;
+    }
+    return data;
   }
 
   // List 데이터 명령어
@@ -80,8 +94,11 @@ class RedisServiceManager {
   }
 
   // 캐시 무효화
-  async invalidate(key) {
-    return this.client.del(key);
+  async invalidate(keys) {
+    if (!Array.isArray(keys)) {
+      keys = [keys];
+    }
+    return await this.client.del(keys);
   }
 
   // 트랜잭션 처리
@@ -98,6 +115,20 @@ class RedisServiceManager {
     return this.client.ttl(key);
   }
 
+  //해당 키의 값이 있는지 검사
+  async exists(keys) {
+    if (!Array.isArray(keys)) {
+      keys = [keys];
+    }
+    return this.client.exists(keys);
+  }
+
+  async unlink(keys) {
+    if (!Array.isArray(keys)) {
+      keys = [keys];
+    }
+    return this.client.unlink(...keys);
+  }
   async disconnect() {
     if (this.client) {
       await this.client.quit();

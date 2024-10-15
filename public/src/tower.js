@@ -4,9 +4,8 @@ export class Tower {
   constructor(x, y, cost, i) {
     // 생성자 안에서 타워들의 속성을 정의한다고 생각하시면 됩니다!
     this.towersData = getGameData().towers;
-
-    this.towerNum = i;
     this.towerDataIdx = this.towersData[i].id;
+    this.towerNum = i;
     this.x = x; // 타워 이미지 x 좌표
     this.y = y; // 타워 이미지 y 좌표
     this.width = 40; // 타워 이미지 가로 길이 (이미지 파일 길이에 따라 변경 필요하며 세로 길이와 비율을 맞춰주셔야 합니다!)
@@ -14,17 +13,17 @@ export class Tower {
     this.attackPower = this.towersData[i].damage; // 타워 공격력
     this.range = this.towersData[i].damageRange; // 타워 사거리
     this.cost = cost; // 타워 구입 비용
-    this.cooldown = 0; // 타워 공격 쿨타임
+    this.cooldown = 0.0; // 타워 공격 쿨타임
     this.attackCooltime = this.towersData[i].attackCooltime;
     this.beamDuration = 0; // 타워 광선 지속 시간
     this.target = null; // 타워 광선의 목표
-    this.towerLevel = 0;
+    this.towerLevel = 1;
     this.towerUUID = crypto.randomUUID(); // 타워의 UUID 생성
     this.canvasElement = document.createElement('tower'); // 예시로 canvasElement를 설정
     document.body.appendChild(this.canvasElement);
   }
 
-  draw(ctx, towerImage) {
+  draw(ctx, towerImage, delta) {
     ctx.drawImage(towerImage, this.x, this.y, this.width, this.height);
     if (this.beamDuration > 0 && this.target) {
       ctx.beginPath();
@@ -34,23 +33,22 @@ export class Tower {
       ctx.lineWidth = 10;
       ctx.stroke();
       ctx.closePath();
-      this.beamDuration--;
+      this.beamDuration -= delta;
     }
   }
 
   attack(monster) {
-    // 타워가 타워 사정거리 내에 있는 몬스터를 공격하는 메소드이며 사정거리에 닿는지 여부는 game.js에서 확인합니다.
     if (this.cooldown <= 0) {
-      monster.hp -= this.attackPower + this.towerLevel * 50;
-      this.cooldown = this.attackCooltime; // 3초 쿨타임 (초당 60프레임)
-      this.beamDuration = 30; // 광선 지속 시간 (0.5초)
-      this.target = monster; // 광선의 목표 설정
+      monster.hp -= this.attackPower + (this.towerLevel - 1) * 50;
+      this.cooldown += this.attackCooltime; // 3초 쿨타임 (초당 60프레임)
+      this.beamDuration = 500; // 광선 지속 시간 (0.5초)
+      this.target = monster;
     }
   }
 
-  updateCooldown() {
-    if (this.cooldown > 0) {
-      this.cooldown--;
+  updateCooldown(deltaTime) {
+    if (this.cooldown >= 0) {
+      this.cooldown -= deltaTime;
     }
   }
 }

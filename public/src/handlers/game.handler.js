@@ -1,3 +1,4 @@
+import { setMessage } from '../index.js';
 export const stageSetup = (data) => {
   const stageId = data.stageId;
   // gameManager.setCurrentStage(stageId);
@@ -8,11 +9,18 @@ export const moveStage = (data) => {
   // gameManager.setCurrentStage(stageId);
 };
 
-export const updatedRank = (data) => {
-  // gameManager.setRankUser({
-  //   highScore: data.firsUser.highScore,
-  //   highDistance: data.firsUser.highDistance,
-  // });
+export const gameStartHandler = async (data) => {
+  if (data?.status === 'success') {
+    const game = await import('../game.js');
+    game.initGame(data.gold, data.highScore, data.stageId);
+  } else {
+    setMessage('게임 시작에 실패했습니다.');
+  }
+};
+
+export const gameEndHandler = (data) => {
+  //새로고침해서 다시 다 불러오게 만듦
+  location.reload();
 };
 
 export const buyTower = (data) =>{

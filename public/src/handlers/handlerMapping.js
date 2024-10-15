@@ -4,35 +4,45 @@ import {
   handlerNotFoundHandler,
   versionMismatchHandler,
 } from './connection.handler.js';
-import { stageSetup, moveStage, updatedRank, buyTower } from './game.handler.js';
+import { gameStartHandler, gameEndHandler } from './game.handler.js';
+import { moveStageHandler } from './stage.handler.js';
+import { monsterSpawnHandler, monsterKillerHandler } from './monster.handler.js';
 const handlers = [
   {
     event: 'connection',
     action: connectHandler,
   },
   {
-    event: 'event',
-    action: buyTower,
-  },
-  {
     event: 'version_mismatch',
     action: versionMismatchHandler,
   },
   {
-    event: 'stageResponse',
-    action: stageSetup,
-  },
-  {
-    event: 'moveStage',
-    action: moveStage,
-  },
-  {
-    event: 'updatedRank',
-    action: updatedRank,
+    event: 'move_stage',
+    action: moveStageHandler,
   },
   {
     event: 'handler_not_found',
     action: handlerNotFoundHandler,
+  },
+  {
+    event: 'game_start',
+    action: gameStartHandler,
+  },
+  {
+    event: 'game_end',
+    action: gameEndHandler,
+  },
+  {
+    event: 'disconnect',
+    action: disconnectHandler,
+  },
+  {
+    event: 'monsterSpawn',
+    action: monsterSpawnHandler,
+  },
+  {
+    event: 'monsterKill',
+    action: monsterKillerHandler,
   },
 ];
 
