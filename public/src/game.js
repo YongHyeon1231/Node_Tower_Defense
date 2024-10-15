@@ -11,7 +11,6 @@ import {
   requestNextStage,
   requestGameEnd,
 } from './Socket.js';
-
 //#region Monster Spawn
 let stageData = getGameData().stages;
 let maxMonsterCount = 0;
@@ -34,11 +33,11 @@ function spawnMonster(data) {
 
   const monsterNumber = monsterData.findIndex((data) => data.id === spawnMonsterId);
   const monsterInfo = monsterData[monsterNumber];
-  //console.log('소환할 몬스터 =>', monsterNumber, ' , ', monsterImages[monsterNumber]);
+  //console.log('소환할 몬스터 =>', spawnMonsterId, ' , ', monsterImages[spawnMonsterId]);
   const monster = new Monster(
     monsterPath,
     monsterNumber,
-    monsterImages[monsterNumber],
+    monsterImages[spawnMonsterId],
     monsterLevel,
     monsterInfo,
     monsterUUID,
@@ -99,7 +98,6 @@ function killMonster(data) {
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const NUM_OF_MONSTERS = 5; // 몬스터 개수
 const NUM_OF_TOWERS = 3; // 몬스터 개수
 
 let userGold = 0; // 유저 골드
@@ -145,11 +143,19 @@ const pathImage = new Image();
 pathImage.src = 'images/path.png';
 
 // 몬스터 이미지 로딩 파트
-const monsterImages = [];
-for (let i = 1; i <= NUM_OF_MONSTERS; i++) {
-  const img = new Image();
-  img.src = `images/monster${i}.png`;
-  monsterImages.push(img);
+const monsterImages = {};
+async function loadMonsterImages() {
+  const response = await fetch('assets/monster.json');
+
+  const json = await response.json();
+  const keys = Object.keys(json.data);
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+
+    const img = new Image();
+    img.src = `images/${json.data[key]}.png`;
+    monsterImages[key] = img;
+  }
 }
 
 //
@@ -461,17 +467,40 @@ export const initGame = (startGold, playerHighScore, stageId) => {
   initMap(); // 맵 초기화 (배경, 몬스터 경로 그리기)
   placeInitialTowers(); // 설정된 초기 타워 개수만큼 사전에 타워 배치
   placeBase(); // 기지 배치
-  //setInterval(spawnMonster, monsterSpawnInterval); // 설정된 몬스터 생성 주기마다 몬스터 생성
+
+  console.log('초기화 완료');
   gameLoop(); // 게임 루프 최초 실행
 };
 
 // 이미지 로딩 완료 후 서버와 연결하고 게임 초기화
+await loadMonsterImages();
 await Promise.all([
-  new Promise((resolve) => (backgroundImage.onload = resolve)),
-  ...towerImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
-  new Promise((resolve) => (baseImage.onload = resolve)),
-  new Promise((resolve) => (pathImage.onload = resolve)),
-  ...monsterImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
+  new Promise((resolve) => {
+    backgroundImage.onload = resolve;
+    if (backgroundImage.complete) resolve();
+  }),
+  ...towerImages.map(
+    (img) =>
+      new Promise((resolve) => {
+        img.onload = resolve;
+        if (img.complete) resolve();
+      }),
+  ),
+  new Promise((resolve) => {
+    baseImage.onload = resolve;
+    if (baseImage.complete) resolve();
+  }),
+  new Promise((resolve) => {
+    pathImage.onload = resolve;
+    if (pathImage.complete) resolve();
+  }),
+  ...Object.values(monsterImages).map(
+    (img) =>
+      new Promise((resolve) => {
+        img.onload = resolve;
+        if (img.complete) resolve(); //너무 빠르거나 캐시된 이미지 불러오거나 하면 이벤트가 발생안할 수 있어서 직접 부르는 식으로 처리함.
+      }),
+  ),
 ]);
 
 function addBuyTowerButton() {

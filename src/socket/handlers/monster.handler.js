@@ -4,6 +4,21 @@ import logger from '../../libs/logger.js';
 import gameRedis from '../../managers/redis.manager.js';
 import { v4 } from 'uuid';
 
+const selectMonster = (monsterData, monsterTypeRange, spawnedMonsterCount) => {
+  const validMonsters = monsterData.filter(
+    (monster) => monster.chanceOnCount && spawnedMonsterCount % monster.chanceOnCount === 0,
+  );
+
+  if (validMonsters.length > 0) {
+    const selectedMonster = validMonsters.find((monster) => Math.random() >= monster.chance);
+
+    if (selectedMonster) {
+      return selectedMonster;
+    }
+  }
+
+  return selectMonsterByWeight(monsterData.slice(0, monsterTypeRange));
+};
 const selectMonsterByWeight = (availableMonsters) => {
   if (availableMonsters.length === 1) {
     return availableMonsters[0];
@@ -56,6 +71,7 @@ export const monsterSpawnHandler = async (user, payload) => {
           monsters: { length: 0 },
           lastSpawnTime: serverTime,
           lastUpdate: serverTime,
+          spawnedMonsterCount: 0,
         };
       }
 
@@ -72,8 +88,11 @@ export const monsterSpawnHandler = async (user, payload) => {
         message = `remainedTime over zero : ${remainedTime}`;
       } else {
         // 3단계: 새롭게 소환할 몬스터에 대한 정보를 redis에 저장 그리고 그 시간을 또 저장
-        const spawnMonster = selectMonsterByWeight(
-          monsters.data.slice(0, currentStage.monsterTypeRange),
+        playerMonsterStatus.spawnedMonsterCount++;
+        let spawnMonster = selectMonster(
+          monsters.data,
+          currentStage.monsterTypeRange,
+          playerMonsterStatus.spawnedMonsterCount,
         );
 
         const spawnMonsterId = spawnMonster.id;
