@@ -38,7 +38,7 @@ let baseHp = 1000; // 기지 체력
 let towerCost = 100; // 타워 구입 비용
 let upgradeCost = 1000;
 let numOfInitialTowers = 5; // 초기 타워 개수
-let maxTowerNum = 50;
+let maxTowerNum = 30;
 let monsterLevel = 1; // 몬스터 레벨
 
 // 몬스터 생성 주기는 스테이지별로 받아와서 생성
@@ -55,10 +55,12 @@ const backgroundImage = new Image();
 backgroundImage.src = 'images/bg.webp';
 
 const towerImages = [];
-for (let i = 1; i <= NUM_OF_TOWERS; i++) {
-  const img = new Image();
-  img.src = `images/tower${i}.png`;
-  towerImages.push(img);
+for (let j = 1; j <= NUM_OF_TOWERS; j++) {
+  for (let i = 1; i <= 3; i++) {
+    const img = new Image();
+    img.src = `images/tower${i}_${j}.png`;
+    towerImages.push(img);
+  }
 }
 
 const baseImage = new Image();
@@ -166,6 +168,7 @@ function getRandomPositionNearPath(maxDistance) {
   };
 }
 
+// 겹치지 않는 타워 위치 찾기
 function isValidNewCoordinate(towers, x, y) {
   const newX = x;
   const newY = y;
@@ -203,7 +206,16 @@ function placeInitialTowers() {
     let towerNum = Math.floor(Math.random() * 3);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
-    tower.draw(ctx, towerImages[towerNum]);
+    tower.draw(ctx, towerImages[towerNum * 3]);
+    const data = {
+      idx: towers[towers.length - 1].towerDataIdx,
+      towerUUID: towers[towers.length - 1].towerUUID,
+      x: x,
+      y: y,
+      towerLevel: 0,
+    };
+    console.log(data);
+    buyTowerhandler(data);
   }
 }
 
@@ -224,16 +236,56 @@ function placeNewTower() {
     let towerNum = Math.floor(Math.random() * 3);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
-    tower.draw(ctx, towerImages[towerNum]);
+    tower.draw(ctx, towerImages[towerNum * 3]);
     userGold -= towerCost;
+
+    const data = {
+      idx: towers[towers.length - 1].towerDataIdx,
+      towerUUID: towers[towers.length - 1].towerUUID,
+      x: x,
+      y: y,
+      towerLevel: 1,
+    };
+    console.log(data);
+    buyTowerhandler(data);
   }
 }
 
-function upgradeTowers() {
-  if (userGold >= upgradeCost) {
-    for (let i = 0; i < towers.length; i++) {
-      towers[i].towerLevel += 1;
-    }
+// 타워 업그레이드 함수
+function upgradeTower(tower) {
+  if (userGold >= upgradeCost && tower.towerLevel < 3) {
+    tower.towerLevel += 1;
+    userGold -= upgradeCost;
+    console.log('타워 업그레이드 완료');
+    const data = {
+      idx: tower.towerDataIdx,
+      towerUUID: tower.towerUUID,
+      x: tower.x,
+      y: tower.y,
+      towerLevel: tower.towerLevel,
+    };
+    console.log(tower);
+    upgradeTowerhandler(data);
+  } else {
+    console.log('업그레이드가 불가능합니다.');
+  }
+}
+
+// 타워 판매 함수
+function sellTower(tower) {
+  const towerIndex = towers.indexOf(tower);
+  if (towerIndex !== -1) {
+    towers.splice(towerIndex, 1);
+    userGold += towerCost * 0.5; // 판매 시 골드 회수
+    console.log('타워 판매 완료');
+    const data = {
+      idx: tower.towerDataIdx,
+      towerUUID: tower.towerUUID,
+      x: tower.x,
+      y: tower.y,
+      towerLevel: tower.towerLevel,
+    };
+    sellTowerhandler(data);
   }
   userGold -= upgradeCost;
 }
@@ -275,8 +327,24 @@ function gameLoop(previousTime = null, elapsedTime = null) {
 
   // 타워 그리기 및 몬스터 공격 처리
   towers.forEach((tower) => {
-    tower.draw(ctx, towerImages[tower.towerNum], deltaTime);
-    tower.updateCooldown(deltaTime);
+
+    tower.draw(ctx, towerImages[tower.towerNum + (tower.towerLevel - 1) * 3]);
+    tower.updateCooldown();
+
+    canvas.addEventListener('click', (event) => {
+      const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+      const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+      if (
+        mouseX >= tower.x &&
+        mouseX <= tower.x + tower.width &&
+        mouseY >= tower.y &&
+        mouseY <= tower.y + tower.height
+      ) {
+        onTowerClick(tower);
+      }
+    });
+
     monsters.forEach((monster) => {
       const distance = Math.sqrt(
         Math.pow(tower.x - monster.x, 2) + Math.pow(tower.y - monster.y, 2),

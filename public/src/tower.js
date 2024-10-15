@@ -17,11 +17,16 @@ export class Tower {
     this.attackCooltime = this.towersData[i].attackCooltime;
     this.beamDuration = 0; // 타워 광선 지속 시간
     this.target = null; // 타워 광선의 목표
-    this.towerLevel = 0;
+
+    this.towerLevel = 1;
+    this.towerUUID = crypto.randomUUID(); // 타워의 UUID 생성
+    this.canvasElement = document.createElement('tower'); // 예시로 canvasElement를 설정
+    document.body.appendChild(this.canvasElement);
   }
 
   draw(ctx, towerImage, delta) {
     ctx.drawImage(towerImage, this.x, this.y, this.width, this.height);
+    console.log("지금 그리는 타워의 레벨은 : ",this.towerLevel);
     if (this.beamDuration > 0 && this.target) {
       ctx.beginPath();
       ctx.moveTo(this.x + this.width / 2, this.y + this.height / 2);
@@ -36,7 +41,7 @@ export class Tower {
 
   attack(monster) {
     if (this.cooldown <= 0) {
-      monster.hp -= this.attackPower + this.towerLevel * 50;
+      monster.hp -= this.attackPower + (this.towerLevel - 1) * 50;
       this.cooldown += this.attackCooltime; // 3초 쿨타임 (초당 60프레임)
       this.beamDuration = 500; // 광선 지속 시간 (0.5초)
       this.target = monster;
