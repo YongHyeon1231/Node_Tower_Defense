@@ -80,8 +80,11 @@ class RedisServiceManager {
   }
 
   // 캐시 무효화
-  async invalidate(key) {
-    return this.client.del(key);
+  async invalidate(keys) {
+    if (!Array.isArray(keys)) {
+      keys = [keys];
+    }
+    return await this.client.del(keys);
   }
 
   // 트랜잭션 처리
@@ -99,10 +102,19 @@ class RedisServiceManager {
   }
 
   //해당 키의 값이 있는지 검사
-  async exists(...keys) {
+  async exists(keys) {
+    if (!Array.isArray(keys)) {
+      keys = [keys];
+    }
     return this.client.exists(keys);
   }
 
+  async unlink(keys) {
+    if (!Array.isArray(keys)) {
+      keys = [keys];
+    }
+    return this.client.unlink(...keys);
+  }
   async disconnect() {
     if (this.client) {
       await this.client.quit();

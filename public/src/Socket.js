@@ -1,8 +1,6 @@
 import { CLIENT_VERSION } from './Constants.js';
 import handlers from './handlers/handlerMapping.js';
 import { getLocalStorage } from './LocalStorage.js';
-import { tokenVerify } from '../../src/rest/middleware/token.middleware.js';
-
 let socket = null;
 
 const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

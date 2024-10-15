@@ -11,7 +11,7 @@ export const moveStage = (data) => {
 
 export const gameStartHandler = (data) => {
   if (data?.status === 'success') {
-    import('./game.js');
+    import('../game.js');
   } else {
     setMessage('게임 시작에 실패했습니다.');
   }

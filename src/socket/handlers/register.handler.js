@@ -36,9 +36,8 @@ const registerHandler = async (io) => {
         return;
       }
 
-      await handleConnection(socket, uuid);
+      await handleConnection(socket, user);
       socket.on('event', (data) => {
-        console.log({ ...data, user });
         handlerEvent(io, socket, { ...data, user });
       });
       socket.on('disconnect', (socket) => handleDisconnect(socket, uuid));
