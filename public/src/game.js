@@ -9,6 +9,7 @@ import {
   requestBuyTower,
   requestUpgradeTower,
   requestNextStage,
+  requestGameEnd,
 } from './Socket.js';
 
 //#region Monster Spawn
@@ -394,8 +395,8 @@ function gameLoop(previousTime = null, elapsedTime = null) {
       const isDestroyed = monster.move(base);
       if (isDestroyed) {
         /* 게임 오버 */
+        requestGameEnd();
         alert('게임 오버. 스파르타 본부를 지키지 못했다...ㅠㅠ');
-        location.reload();
       }
       monster.draw(ctx);
     } else {
