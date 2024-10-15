@@ -2,8 +2,6 @@ import { Base } from './base.js';
 import { Monster } from './monster.js';
 import { Tower } from './tower.js';
 
-
-
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
 */
@@ -32,7 +30,7 @@ const ctx = canvas.getContext('2d');
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 const NUM_OF_TOWERS = 3; // 몬스터 개수
 
-let userGold = 10000; // 유저 골드
+let userGold = 0; // 유저 골드
 let base; // 기지 객체
 // 플레이어의 기지 체력
 let baseHp = 1000; // 기지 체력
@@ -329,12 +327,13 @@ function killMonster(i) {
   monsters.splice(i, 1);
 }
 
-function initGame() {
+export const initGame = (startGold, playerHighScore) => {
   if (isInitGame) {
     return;
   }
-
-
+  isInitGame = true;
+  userGold = startGold;
+  highScore = playerHighScore;
   monsterPath = generateRandomMonsterPath(); // 몬스터 경로 생성
   initMap(); // 맵 초기화 (배경, 몬스터 경로 그리기)
   placeInitialTowers(); // 설정된 초기 타워 개수만큼 사전에 타워 배치
@@ -342,19 +341,16 @@ function initGame() {
 
   //setInterval(spawnMonster, monsterSpawnInterval); // 설정된 몬스터 생성 주기마다 몬스터 생성
   gameLoop(); // 게임 루프 최초 실행
-  isInitGame = true;
-}
+};
 
 // 이미지 로딩 완료 후 서버와 연결하고 게임 초기화
-Promise.all([
+await Promise.all([
   new Promise((resolve) => (backgroundImage.onload = resolve)),
   ...towerImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
   new Promise((resolve) => (baseImage.onload = resolve)),
   new Promise((resolve) => (pathImage.onload = resolve)),
   ...monsterImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
-]).then(() => {
-  initGame();
-});
+]);
 
 const buyTowerButton = document.createElement('button');
 buyTowerButton.textContent = '타워 구입';

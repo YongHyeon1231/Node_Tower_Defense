@@ -9,9 +9,10 @@ export const moveStage = (data) => {
   // gameManager.setCurrentStage(stageId);
 };
 
-export const gameStartHandler = (data) => {
+export const gameStartHandler = async (data) => {
   if (data?.status === 'success') {
-    import('../game.js');
+    const game = await import('../game.js');
+    game.initGame(data.gold, data.highScore);
   } else {
     setMessage('게임 시작에 실패했습니다.');
   }
