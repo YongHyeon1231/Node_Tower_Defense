@@ -58,7 +58,6 @@ function changeStage(newStageId) {
   currentStageLevel = stageData.findIndex((stage) => stage.id === newStageId);
   const stageInfo = stageData[currentStageLevel++];
 
-  monsterPath = generateRandomMonsterPath();
   isLastStage = stageData.findIndex((stage) => stage.id === newStageId);
   isLastStage = isLastStage === -1 || isLastStage + 1 >= stageData.length;
   maxMonsterCount = stageInfo.monsterCount;
@@ -290,10 +289,12 @@ function getRandomPositionNearPath(maxDistance) {
   const offsetX = (Math.random() - 0.5) * 2 * maxDistance;
   const offsetY = (Math.random() - 0.5) * 2 * maxDistance;
 
-  return {
-    x: Math.floor((posX + offsetX) * 0.8), // 타워가 기지에 너무 붙어서 생성되는 것 방지 (x위치 보정)
-    y: posY + offsetY,
+  const pos = {
+    x: Math.max(50, Math.min(canvas.width - 50, Math.floor((posX + offsetX) * 0.8))), // 타워가 기지에 너무 붙어서 생성되는 것 방지 (x위치 보정)
+    y: Math.max(50, Math.min(canvas.height - 50, posY + offsetY)),
   };
+
+  return pos;
 }
 
 // 겹치지 않는 타워 위치 찾기
