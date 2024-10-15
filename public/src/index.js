@@ -21,7 +21,7 @@ const createButton = (id, text) => {
 
 let token = getLocalStorage('token');
 
-const setMessage = (text) => {
+export const setMessage = (text) => {
   const messageElement = document.querySelector('.message');
   messageElement.textContent = text;
 };
@@ -67,9 +67,7 @@ export const setGameData = (data) => {
     document.getElementById('playButton').addEventListener('click', () => {
       document.querySelector('.button-container').style.display = 'none';
       document.getElementById('gameCanvas').style.display = 'block';
-      import('./game.js');
       requestGameStart();
-    
     });
   }
 

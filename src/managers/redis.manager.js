@@ -98,6 +98,11 @@ class RedisServiceManager {
     return this.client.ttl(key);
   }
 
+  //해당 키의 값이 있는지 검사
+  async exists(...keys) {
+    return this.client.exists(keys);
+  }
+
   async disconnect() {
     if (this.client) {
       await this.client.quit();

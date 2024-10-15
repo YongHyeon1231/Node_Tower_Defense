@@ -1,36 +1,49 @@
-import prisma from "../../managers/prisma.manager.js";
+import { getGameAssets } from '../../init/assets.js';
+import logger from '../../libs/logger.js';
+import prisma from '../../managers/prisma.manager.js';
+import redis from '../../managers/redis.manager.js';
 
 // 게임 시작 이벤트 처리
 export const gameStart = async (user, payload) => {
-  const { playerId, currentStageId } = payload; // payload에서 데이터 추출
   const { id, email, name } = user; // 사용자 정보 추출
-
+  let message = undefined;
+  let event = 'game_start';
+  let status = 'success';
+  let result = {};
+  const playerProgressKey = `playerProgress:${id}`;
   try {
     // 플레이어 진행 상황 확인
-    const existingProgress = await prisma.playerProgress.findFirst({
-      where: { playerId },
-    });
+    const existingProgress = await redis.exists(playerProgressKey);
 
+    console.log(`existingProgress: ${existingProgress}`);
     if (existingProgress) {
-      socket.emit('error', { message: '이미 게임이 진행 중입니다.' });
-      return;
+      message = 'Already progress game';
+      status = 'fail';
+    } else {
+      const { spartaHeadQuaters, stages } = getGameAssets();
+      const HQ = spartaHeadQuaters.data[0];
+      await redis.set(playerProgressKey, {
+        currentStageId: stages.data[0].id,
+        currentHQId: HQ.id,
+        currentHQHp: HQ.maxHP,
+        gold: 0,
+        score: 0,
+        lastUpdate: new Date(),
+      });
     }
 
     // 플레이어 진행 상황 생성
-    const playerProgress = await prisma.playerProgress.create({
-      payload: { // payload를 data로 변경
-        playerId,
-        currentStageId,
-        gold: 0, // 초기 골드
-        score: 0, // 초기 점수
-        lastUpdate: new Date(),
-      },
-    });
-
-    socket.emit('gameStarted', { message: '게임이 시작되었습니다.', playerProgress });
   } catch (error) {
-    console.error('게임 시작 중 오류:', error);
-    socket.emit('error', { message: '게임 시작 오류가 발생했습니다.' });
+    logger.error('게임 시작 중 오류:', error);
+    status = 'fail';
+    result = undefined;
+  } finally {
+    return {
+      event,
+      message,
+      status,
+      ...result,
+    };
   }
 };
 
@@ -52,7 +65,7 @@ export const gameEnd = async (user, payload) => {
     // 플레이어 진행 상황 업데이트
     const updatedProgress = await prisma.playerProgress.update({
       where: { id: playerProgress.id },
-      payload: { 
+      payload: {
         score: playerProgress.score + score,
         gold: playerProgress.gold + gold,
         lastUpdate: new Date(),

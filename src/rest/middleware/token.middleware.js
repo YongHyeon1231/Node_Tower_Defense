@@ -14,12 +14,6 @@ export const tokenVerify = async (req, res, next) => {
     try {
       // 토큰 검증
       const decodedToken = jwt.verify(token, JWT_SECRET);
-      const playerEmail = decodedToken.email;
-      const user = await findPlayerByEmail(playerEmail);
-      if (!user) {
-        throw new ApiError('토큰 사용자가 존재하지 않습니다.', 401);
-      }
-
       // 데이터 값 저장
       req.user = user;
     } catch (error) {
