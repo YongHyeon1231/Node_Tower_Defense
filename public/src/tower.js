@@ -18,7 +18,7 @@ export class Tower {
     this.beamDuration = 0; // 타워 광선 지속 시간
     this.target = null; // 타워 광선의 목표
     this.towerLevel = 1;
-    this.towerUUID = crypto.randomUUID(); // 타워의 UUID 생성
+    this.towerUUID = uuid.v4(); // 타워의 UUID 생성
     this.canvasElement = document.createElement('tower'); // 예시로 canvasElement를 설정
     document.body.appendChild(this.canvasElement);
   }
