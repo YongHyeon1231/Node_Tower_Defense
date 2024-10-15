@@ -40,7 +40,7 @@ const registerHandler = async (io) => {
       socket.on('event', (data) => {
         handlerEvent(io, socket, { ...data, user });
       });
-      socket.on('disconnect', (socket) => handleDisconnect(socket, uuid));
+      socket.on('disconnect', (socket) => handleDisconnect(socket, user));
     } catch (error) {
       logger.error('registerHandler : ', error);
       socket.disconnect(true);
