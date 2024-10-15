@@ -1,7 +1,11 @@
 import { Base } from './base.js';
 import { Monster } from './monster.js';
 import { Tower } from './tower.js';
-import { buyTowerhandler, sellTowerhandler, upgradeTowerhandler } from './handlers/tower.handler.js';
+import {
+  buyTowerhandler,
+  sellTowerhandler,
+  upgradeTowerhandler,
+} from './handlers/tower.handler.js';
 
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
@@ -327,23 +331,8 @@ function gameLoop(previousTime = null, elapsedTime = null) {
 
   // 타워 그리기 및 몬스터 공격 처리
   towers.forEach((tower) => {
-
-    tower.draw(ctx, towerImages[tower.towerNum + (tower.towerLevel - 1) * 3]);
-    tower.updateCooldown();
-
-    canvas.addEventListener('click', (event) => {
-      const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-
-      if (
-        mouseX >= tower.x &&
-        mouseX <= tower.x + tower.width &&
-        mouseY >= tower.y &&
-        mouseY <= tower.y + tower.height
-      ) {
-        onTowerClick(tower);
-      }
-    });
+    tower.draw(ctx, towerImages[tower.towerNum + (tower.towerLevel - 1) * 3], deltaTime);
+    tower.updateCooldown(deltaTime);
 
     monsters.forEach((monster) => {
       const distance = Math.sqrt(
@@ -393,6 +382,22 @@ function killMonster(i) {
   score += monsters[i].killScore;
   monsters.splice(i, 1);
 }
+
+canvas.addEventListener('click', (event) => {
+  const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+  const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+  towers.forEach((tower) => {
+    if (
+      mouseX >= tower.x &&
+      mouseX <= tower.x + tower.width &&
+      mouseY >= tower.y &&
+      mouseY <= tower.y + tower.height
+    ) {
+      onTowerClick(tower);
+    }
+  });
+});
 
 export const initGame = (startGold, playerHighScore) => {
   if (isInitGame) {
@@ -452,9 +457,10 @@ sellTowerButton.textContent = '타워 판매';
 // 타워 클릭 시 버튼 보이기
 function onTowerClick(tower, mouseX, mouseY) {
   // 버튼 위치 설정
-  upgradeTowerButton.style.left = `${mouseX}px`;
+  const rect = canvas.getBoundingClientRect();
+  upgradeTowerButton.style.left = `${rect.left + mouseX + 60}px`;
   upgradeTowerButton.style.top = `${mouseY + 60}px`;
-  sellTowerButton.style.left = `${mouseX}px`;
+  sellTowerButton.style.left = `${rect.left + mouseX + 60}px`;
   sellTowerButton.style.top = `${mouseY + 120}px`; // 아래쪽에 배치
 
   // 버튼 보이기
