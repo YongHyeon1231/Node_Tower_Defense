@@ -222,7 +222,6 @@ function placeNewTower() {
     //   }
     // }
     let towerNum = Math.floor(Math.random() * 3);
-    console.log(towerNum);
     const tower = new Tower(x, y, towerCost, towerNum);
     towers.push(tower);
     tower.draw(ctx, towerImages[towerNum]);
@@ -276,8 +275,8 @@ function gameLoop(previousTime = null, elapsedTime = null) {
 
   // 타워 그리기 및 몬스터 공격 처리
   towers.forEach((tower) => {
-    tower.draw(ctx, towerImages[tower.towerNum]);
-    tower.updateCooldown();
+    tower.draw(ctx, towerImages[tower.towerNum], deltaTime);
+    tower.updateCooldown(deltaTime);
     monsters.forEach((monster) => {
       const distance = Math.sqrt(
         Math.pow(tower.x - monster.x, 2) + Math.pow(tower.y - monster.y, 2),
