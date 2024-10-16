@@ -22,3 +22,13 @@ export const gameEndHandler = (data) => {
   //새로고침해서 다시 다 불러오게 만듦
   location.reload();
 };
+
+export const buyTower = (data) => {
+  console.log('구매데이터가 여기까지 온다고?', data);
+};
+export const sellTower = (data) => {
+  console.log('판매데이터가 여기까지 온다고?', data);
+};
+export const upgradeTower = (data) => {
+  console.log('업그레이드데이터가 여기까지 온다고?', data);
+};

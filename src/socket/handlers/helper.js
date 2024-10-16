@@ -58,5 +58,6 @@ export const removeUserData = async (user) => {
   let keys = [];
   keys.push(`playerProgress:${id}`);
   keys.push(`playerMonsterStatus:${id}`);
+  keys.push(`playerTower:${id}`);
   const result = await redisServiceManager.unlink(keys);
 };

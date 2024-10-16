@@ -66,7 +66,7 @@ export const gameEnd = async (user, payload) => {
   try {
     const [player, playerProgress] = await Promise.all([
       prisma.player.findUnique({ where: { id } }),
-      redis.exists(playerProgressKey),
+      redis.get(playerProgressKey),
     ]);
 
     if (playerProgress) {

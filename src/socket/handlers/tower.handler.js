@@ -13,8 +13,8 @@ export const buyTower = async (user, payload) => {
       currentTime: payload.currentTime,
     };
     await gameRedis.hSet(
-      `tower:${payload.towerUUID} : user:${user.id}`,
-      'towerInfo',
+      `playerTower:${user.id}`,
+      `tower:${payload.towerUUID}`,
       JSON.stringify(towerInfo),
     );
     console.log('타워구입이 서버에 전달 된건가?', payload, '\n');
@@ -31,10 +31,8 @@ export const buyTower = async (user, payload) => {
 
 export const sellTower = async (user, payload) => {
   try {
-    await gameRedis.invalidate(
-      `tower:${payload.towerUUID} : user:${user.id}`,
-    );
-    console.log("타워를 팔아보자", payload, "\n");
+    await gameRedis.hDel(`playerTower:${user.id}`, `tower:${payload.towerUUID}`);
+    console.log('타워를 팔아보자', payload, '\n');
     console.log('이건 판매한 타워의 UUID야', payload.data.towerUUID);
     return {
       event: 'sellTower',
@@ -54,8 +52,8 @@ export const upgradeTower = async (user, payload) => {
       currentTime: payload.currentTime,
     };
     await gameRedis.hSet(
-      `tower:${payload.towerIdx} : user:${user.id}`,
-      'towerInfo',
+      `playerTower:${user.id}`,
+      `tower:${payload.towerUUID}`,
       JSON.stringify(towerInfo),
     );
     console.log('타워업그레이드를 해봤어요!', payload, '\n');

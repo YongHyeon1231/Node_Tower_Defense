@@ -1,0 +1,12 @@
+{
+    "name": "monster",
+    "version": "1.0.0",
+    "data":{
+        "13001": "monster1",
+        "13002": "monster2",
+        "13003": "monster3",
+        "13004": "monster4",
+        "13005": "monster5",
+        "13101": "monster6"
+    }
+}

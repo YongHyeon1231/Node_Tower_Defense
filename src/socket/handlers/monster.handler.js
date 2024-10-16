@@ -1,10 +1,24 @@
-import ApiError from '../../errors/api-error.js';
 import { getGameAssets } from '../../init/assets.js';
 import logger from '../../libs/logger.js';
 import gameRedis from '../../managers/redis.manager.js';
+import { v4 } from 'uuid';
 
+const selectMonster = (monsterData, monsterTypeRange, spawnedMonsterCount) => {
+  const validMonsters = monsterData.filter(
+    (monster) => monster.chanceOnCount && spawnedMonsterCount % monster.chanceOnCount === 0,
+  );
+
+  if (validMonsters.length > 0) {
+    const selectedMonster = validMonsters.find((monster) => Math.random() <= monster.chance);
+
+    if (selectedMonster) {
+      return selectedMonster;
+    }
+  }
+
+  return selectMonsterByWeight(monsterData.slice(0, monsterTypeRange));
+};
 const selectMonsterByWeight = (availableMonsters) => {
-  console.log('availableMonsters => ', availableMonsters);
   if (availableMonsters.length === 1) {
     return availableMonsters[0];
   }
@@ -26,12 +40,12 @@ export const monsterSpawnHandler = async (user, payload) => {
   let message = undefined;
   let status = 'success';
   const event = 'monsterSpawn';
-  let spawnMonsterId = undefined;
+  let result = undefined;
   try {
     const playerProgressKey = `playerProgress:${user.id}`;
     const playerMonsterStatusKey = `playerMonsterStatus:${user.id}`;
 
-    const { monsters, stages, spartaHeadQuaters } = getGameAssets();
+    const { monsters, stages } = getGameAssets();
 
     const serverTime = Date.now();
 
@@ -40,8 +54,6 @@ export const monsterSpawnHandler = async (user, payload) => {
       gameRedis.get(playerProgressKey),
       gameRedis.get(playerMonsterStatusKey),
     ]);
-
-    const hq = spartaHeadQuaters.data[0];
 
     if (!playerProgress) {
       status = 'fail';
@@ -55,9 +67,10 @@ export const monsterSpawnHandler = async (user, payload) => {
       // 1-1단계: 몬스터 정보가 없음, 현재 몬스터 정보가 아예 없다면 새로 데이터를 생성해 줘야함 ms
       if (!playerMonsterStatus) {
         playerMonsterStatus = {
-          monsters: [],
+          monsters: { length: 0 },
           lastSpawnTime: serverTime,
           lastUpdate: serverTime,
+          spawnedMonsterCount: 0,
         };
       }
 
@@ -74,11 +87,25 @@ export const monsterSpawnHandler = async (user, payload) => {
         message = `remainedTime over zero : ${remainedTime}`;
       } else {
         // 3단계: 새롭게 소환할 몬스터에 대한 정보를 redis에 저장 그리고 그 시간을 또 저장
-        const spawnMonster = selectMonsterByWeight(
-          monsters.data.slice(0, currentStage.monsterTypeRange),
+        playerMonsterStatus.spawnedMonsterCount++;
+        let spawnMonster = selectMonster(
+          monsters.data,
+          currentStage.monsterTypeRange,
+          playerMonsterStatus.spawnedMonsterCount,
         );
-        spawnMonsterId = spawnMonster.id;
-        playerMonsterStatus.monsters.push(spawnMonster);
+
+        const spawnMonsterId = spawnMonster.id;
+        const monsterUUID = v4();
+        result = {
+          monsterUUID,
+          spawnMonsterId,
+        };
+        playerMonsterStatus.monsters[monsterUUID] = {
+          id: spawnMonster.id,
+          maxHp: spawnMonster.hp,
+          hp: spawnMonster.hp,
+        };
+        playerMonsterStatus.monsters.length++;
         playerMonsterStatus.lastSpawnTime = serverTime;
         playerMonsterStatus.lastUpdate = serverTime;
 
@@ -91,26 +118,80 @@ export const monsterSpawnHandler = async (user, payload) => {
   } catch (error) {
     logger.error(`Error in monsterSpawnHandler: `, error);
     (status = 'fail'), (message = 'Server Internal Error');
-    spawnMonsterId = undefined;
+    result = undefined;
   } finally {
     // 4단계: 클라이언트한테 소환할 몬스터에 대한 정보를 보내주기
     return {
       event,
       status,
       message,
-      spawnMonsterId,
+      ...result,
     };
   }
 };
 
 export const monsterKillerHandler = async (user, payload) => {
+  let message = undefined;
+  let status = 'success';
+  const event = 'monsterKill';
+  let result = undefined;
   try {
-    return {
-      status: 'success',
-      message: 'killed jeon jae hak',
-      event: 'monsterKill',
-    };
+    const { monsterUUID } = payload;
+
+    if (!monsterUUID) {
+      message = 'monsterUUID can not empty';
+      status = 'fail';
+      throw new Error(message);
+    }
+    const playerProgressKey = `playerProgress:${user.id}`;
+    const playerMonsterStatusKey = `playerMonsterStatus:${user.id}`;
+
+    const { monsters, stages } = getGameAssets();
+
+    const serverTime = Date.now();
+
+    let [playerProgress, playerMonsterStatus] = await Promise.all([
+      gameRedis.get(playerProgressKey),
+      gameRedis.get(playerMonsterStatusKey),
+    ]);
+
+    if (!playerProgress || !playerMonsterStatus) {
+      status = 'fail';
+      message = 'go ahead and start';
+    } else {
+      const currentStageId = playerProgress.currentStageId;
+      const currentStageIndex = stages.data.findIndex((stage) => stage.id == currentStageId);
+      const targetMonsterId = playerMonsterStatus.monsters[monsterUUID].id;
+      const targetMonsterInfo = monsters.data.find((monster) => monster.id == targetMonsterId);
+
+      playerMonsterStatus.monsters[monsterUUID] = undefined;
+      playerMonsterStatus.monsters.length--;
+      playerMonsterStatus.lastUpdate = serverTime;
+      playerProgress.gold += targetMonsterInfo.gold;
+      playerProgress.score += targetMonsterInfo.scorePerStage * (currentStageIndex + 1);
+      result = {
+        gold: playerProgress.gold,
+        score: playerProgress.score,
+        monsterLevel: Math.floor(playerProgress.score / 100) + 1,
+        monsterUUID,
+      };
+      await Promise.all([
+        gameRedis.set(playerProgressKey, playerProgress),
+        gameRedis.set(playerMonsterStatusKey, playerMonsterStatus),
+      ]);
+    }
   } catch (error) {
-    logger.error(`Error in monsterKillerHandler: ${error.message}`);
+    if (!message) {
+      message = 'Server Internal Error';
+    }
+    status = 'fail';
+    logger.error(`Error in monsterKillerHandler: `, error);
   }
+
+  return {
+    status,
+    message,
+    event,
+    ...result,
+  };
 };

@@ -45,8 +45,8 @@ export const requestUpgradeTower = (data) => {
   sendEvent(33, { data, currentTime });
 };
 
-export const requestKillMonster = () => {
-  sendEvent(22, {});
+export const requestKillMonster = (monsterUUID) => {
+  sendEvent(22, { monsterUUID });
 };
 
 export const requestSpawnMonster = () => {
@@ -58,7 +58,7 @@ export const requestGameStart = async () => {
 };
 
 export const requestGameEnd = () => {
-  sendEvent(3, {});
+  sendEvent(9, {});
 };
 
 export const requestNextStage = () => {
