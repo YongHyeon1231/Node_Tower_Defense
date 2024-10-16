@@ -1,8 +1,10 @@
 # Node_Tower_Defense
+
 스파르타 코딩클럽 6기 9조 Tower_Defense websocket project
 
 <!-- TOC -->
-- [Node\_Tower\_Defense](#node_tower_defense)
+
+- [Node_Tower_Defense](#node_tower_defense)
   - [패키지 매니저](#패키지-매니저)
   - [Installation](#installation)
     - [Clone repository](#clone-repository)
@@ -11,6 +13,8 @@
     - [Run Development](#run-development)
   - [프로젝트 구조 - WebSocket과 REST API 결합 서버](#프로젝트-구조---websocket과-rest-api-결합-서버)
     - [디렉토리 구조](#디렉토리-구조)
+  - [🎲 주요 기능 ](#-주요-기능-)
+  - [🍻 도전 기능 ](#-도전-기능-)
 - [문서](#문서)
 <!-- /TOC -->
 
@@ -21,31 +25,35 @@ yarn을 사용하고 있습니다.
 ## Installation
 
 ### Clone repository
+
 ```bash
 git clone https://github.com/YongHyeon1231/Node_Tower_Defense
 ```
+
 ### Install Dependencies
+
 ```bash
 yarn add
 ```
 
 ### Run Release
+
 ```bash
 yarn run start
 ```
 
 ### Run Development
+
 ```bash
 yarn run dev
 ```
-
 
 ## 프로젝트 구조 - WebSocket과 REST API 결합 서버
 
 이 프로젝트는 WebSocket과 HTTP REST API를 결합한 구조로 설계되었습니다. 각 주요 디렉토리와 파일들이 어떻게 구성되고 상호작용하는지를 설명합니다.
 
 > src/socket/ 은 WebSocket 관련 처리를 위한 디렉토립니다.
->  src/rest/ 는 REST API 관련 처리를 위한 디렉토립니다.
+> src/rest/ 는 REST API 관련 처리를 위한 디렉토립니다.
 
 ### 디렉토리 구조
 
@@ -78,14 +86,34 @@ yarn run dev
 └── 📄 yarn.lock              # Yarn 패키지 관리자가 생성한 잠금 파일
 ```
 
+## 🎲 주요 기능 </br>
+
+- 회원가입 </br>
+- 로그인 </br>
+- 게임 시작 </br>
+- 게임 종료 </br>
+- 몬스터 처치시 골드, 점수 획득, 몬스터 제거 </br>
+- 몬스터 스폰 </br>
+- 스테이지 이동 </br>
+- 최초 타워 생성 </br>
+- 타워 구매</br>
+- 타워 판매 </br>
+- 타워 업그레이드</br>
+
+## 🍻 도전 기능 </br>
+
+- 스테이지 별 몬스터 종류
+- 타워 판매
+- 타워 종류
+- 타워 업그레이드
 
 # 문서
+
 - 프리스마 사용 중 문제 발생을 최소화 하기 위해 [Prisma 협업 문서](./Docs/prisma.md)를 읽어주세요.
 - REST API 작업 요령은 이 [문서](./Docs/rest.md)를 참고해주세요.
 - Socket 요청 핸들링 작업 요령은 이 [문서](./Docs/socket.md)를 참고해주세요.
 - 데이터베이스의 사용 방법을 고려하고 싶다면 이 [문서](./Docs/database.md)를 참고해주세요.
 
-----
+---
 
-
-  ![사실 잘 모르고스](./Docs/Images/argous.png)
+![사실 잘 모르고스](./Docs/Images/argous.png)
